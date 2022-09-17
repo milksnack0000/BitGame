@@ -43,7 +43,7 @@ class Enemy(pygame.sprite.Sprite):
 second = 250
 ADDENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDENEMY, second) #현재 0.25초마다 실행
-3
+
 
 running = True
 while running:
