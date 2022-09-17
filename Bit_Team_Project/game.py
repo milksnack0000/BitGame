@@ -40,8 +40,9 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         
 #적 추가하는 이벤트
+second = 250
 ADDENEMY = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDENEMY, 250) #0.25초마다 실행
+pygame.time.set_timer(ADDENEMY, second) #현재 0.25초마다 실행
 
 
 running = True
