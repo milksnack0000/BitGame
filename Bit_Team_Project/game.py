@@ -1,10 +1,13 @@
 import pygame
 from pygame.locals import *
+import random
 
 pygame.init() #초기화
 
 #화면 설정
-screen = pygame.display.set_mode((300, 540))
+screen_width = 300
+screen_height = 540
+screen = pygame.display.set_mode((screen_width, screen_height))
 WHITE = (255, 255, 255)
 screen.fill(WHITE)
 pygame.display.set_caption("BIT_GAME")
@@ -35,9 +38,10 @@ class Enemy(pygame.sprite.Sprite):
         self.surf = pygame.image.load("enemy.png").convert_alpha() #이미지 불러오기
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) #투명한 부분 색 선택
         self.rect = self.surf.get_rect()
-        self.rect.center = 50, 270
-
-enemy = Enemy()
+        
+#적 추가하는 이벤트
+ADDENEMY = pygame.USEREVENT + 1
+pygame.time.set_timer(ADDENEMY, 250) #0.25초마다 실행
 
 
 running = True
@@ -46,15 +50,21 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        elif event.type == ADDENEMY:
+            enemy = Enemy()
+            #적 랜덤 생성
+            pos_width = random.choice([random.randint(-320, -120), random.randint(screen_width + 120, screen_width + 320)])
+            pos_height = random.choice([random.randint(-320, -120), random.randint(screen_height + 120, screen_height + 320)])
+            enemy.rect.center = pos_width, pos_height
+            #적 화면에 보이기
+            pygame.draw.rect(screen, WHITE, enemy.rect)
+            screen.blit(enemy.surf, enemy.rect)
+
     #screen.blit(surf, S_rect)
 
     #플레이어 화면에 보이기
     pygame.draw.rect(screen, (0, 0, 255), player.rect)
     screen.blit(player.surf, player.rect)
-
-    #적 화면에 보이기
-    pygame.draw.rect(screen, WHITE, enemy.rect)
-    screen.blit(enemy.surf, enemy.rect)
     
     pygame.display.update()
 
