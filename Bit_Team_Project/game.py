@@ -6,6 +6,20 @@ x_pos = background.get_size()[0]
 y_pos = background.get_size()[1]
 to_x = 0
 to_y = 0
+#체력바
+healthbar = pygame.image.load("resources/images/healthbar.png")
+health = pygame.image.load("resources/images/health.png")
+
+screen.blit(healthbar, (5,5))
+for health1 in range(healthvalue):
+    screen.blit(health, (health1+8,8))
+#체력감소(적=enemy)
+badrect=pygame.Rect(enemyimg.get_rect())
+badrect.top=enemy[1]
+badrect.left=enemy[0]
+if badrect.(플레이어):
+    healthvalue -= random.randint(5,20)
+    enemy.pop(index)
 
 play = True
 while play:
