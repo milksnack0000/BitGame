@@ -45,8 +45,8 @@ enemy = Enemy()
 #적 플레이어 추적
 distance = 0
 
-px= player.rect.x
-py= player.rect.y
+px= player.rect.center.x
+py= player.rect.center.y
 
 dx, dy = 0,0
 
@@ -64,10 +64,10 @@ while running:
     #적 플레이어 추적
 
     #플레이어와 적 사이의 direction vector (dx, dy) 찾기
-    dx, dy = px - enemy.rect.x, py - enemy.rect.y
+    dx, dy = px - enemy.rect.center.x, py - enemy.rect.center.y
     dist = math.hypot(dx, dy)
     dx, dy = dx / dist, dy / dist  # Normalize.
-    distance = (math.hypot(enemy.rect.x  - px, enemy.rect.y - py) )
+    distance = (math.hypot(enemy.rect.center.x  - px, enemy.rect.center.y - py) )
     distance = int(distance)
     
     # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
