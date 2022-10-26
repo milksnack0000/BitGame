@@ -1,4 +1,5 @@
 #플레이어 움직이기
+from pickle import NONE
 import pygmae
 pygame.init()
 fps = pygame.time.clock()
@@ -36,7 +37,7 @@ while play:
                 x_pos = x_pos + 10
             elif event.key == pygame.K_LEET:
                 to_x = -1
-        if event.type == pygame.KEYUP
+        if event.type == pygame.KEYUP:
             if event.key == pygame.k_UP:
                 to_y == 0
             elif event.key == pygame.k_DOWN:
@@ -48,6 +49,19 @@ while play:
     x_pos += to_x
     y_pos += to_y
     pygame.quit()
-            
 
+    #점수
+    point = 0
+    font_point = pygame.font.SysFont(None,30)
+    text_point = font_pont.render(str(point)),True,(255,0,0)
+    background.blit(text_point,(10,10))
+
+    #적을 물리칠때마다 포인트 점수 +5
+    point += 5
+
+    #초기화 및 디스플레이 설정
+
+    pygame.init()
+    background = pygame.display.set_mode((480,360))
+    pygame.display. set_caption("UniverseGame")
 
