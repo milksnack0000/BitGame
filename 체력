@@ -24,20 +24,20 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rect.center = 150, 270
     #     #체력
-    #     self.x = x
-    #     self.y = y
-    #     self.hitbox = (self.x, self.y, 64, 64)
-    #     self.health = 30
-    # def draw(self, win):
-    #     self.hitbox = (self.x + 15, self.y + 15, 30, 40)
-    #     pygame.draw.rect(win, (0,0,0), self.hitbox, 1)
-    #     pygame.draw.rect(win, (255, 0, 0), (self.x + 15, self.y, 30, 10))
-    #     if self.health >= 0:
-    #         pygame.draw.rect(win, (0, 255, 0), (self.x + 15, self.y, self.health, 10))
-    # def hit(self):
-    #     for enemy in enemies:
-    #             if enemy.hitbox[0] < player.x < enemy.hitbox[0] + enemy.hitbox[2] and enemy.hitbox[1] < player.y < enemy.hitbox[1] + enemy.hitbox[3]:
-    #                 enemy.health -= 1
+         self.x = x
+         self.y = y
+         self.hitbox = (self.x, self.y, 64, 64)
+         self.health = 30
+     def draw(self, win):
+         self.hitbox = (self.x + 15, self.y + 15, 30, 40)
+         pygame.draw.rect(win, (0,0,0), self.hitbox, 1)
+         pygame.draw.rect(win, (255, 0, 0), (self.x + 15, self.y, 30, 10))
+         if self.health >= 0:
+             pygame.draw.rect(win, (0, 255, 0), (self.x + 15, self.y, self.health, 10))
+     def hit(self):
+         for enemy in enemies:
+                 if enemy.hitbox[0] < player.x < enemy.hitbox[0] + enemy.hitbox[2] and enemy.hitbox[1] < player.y < enemy.hitbox[1] + enemy.hitbox[3]:
+                     enemy.health -= 1
 player = Player()
 
 
@@ -51,22 +51,23 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rect.center = 50, 270
          #체력
-    #     self.x = x
-    #     self.y = y
-    #     self.hitbox = (self.x, self.y, 64, 64)
-    #     self.health = 30
-    # def draw(self, win):
-    #     self.hitbox = (self.x + 20, self.y + 10, 30, 45)
-    #     pygame.draw.rect(win, (255, 0, 0), (self.x +15, self.y, 30, 10))
-    #     if self.health >= 0:
-    #         pygame.draw.rect(win, (0, 255, 0), (self.x + 15, self.y, self.health, 10))
-    #     pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
-    # def hit(self):
-    #     if player.hitbox[0] < enemy.x + 32 < player.hitbox[0] + player.hitbox[2] and player.hitbox[1] < enemy.y + 32 <player.hitbox[1] + player.hitbox[3]:
-    #         player.health -= 1
+         self.x = x
+         self.y = y
+         self.hitbox = (self.x, self.y, 64, 64)
+         self.health = 30
+     def draw(self, win):
+         self.hitbox = (self.x + 20, self.y + 10, 30, 45)
+         pygame.draw.rect(win, (255, 0, 0), (self.x +15, self.y, 30, 10))
+         if self.health >= 0:
+             pygame.draw.rect(win, (0, 255, 0), (self.x + 15, self.y, self.health, 10))
+         pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
+     def hit(self):
+         if player.hitbox[0] < enemy.x + 32 < player.hitbox[0] + player.hitbox[2] and player.hitbox[1] < enemy.y + 32 <player.hitbox[1] + player.hitbox[3]:
+             player.health -= 1
 
 enemy = Enemy()
 
+enemies = []
 
 running = True
 while running:
