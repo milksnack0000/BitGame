@@ -51,14 +51,25 @@ all_sprites.add(player)
 dx, dy = 0,0
 
 running = True
-startTime = time.time()
+
+startTime = time.time() # 시작 시간(살아남은 시간)
+
+#게임오버 화면
+font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
+txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
+
+size_txt_gameover_width = txt_game_over.get_rect().size[0]
+size_txt_gameover_height = txt_game_over.get_rect().size[1]
+x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
+y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
 
 while running:
+
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
-            print(a) #살아남은 시간 출력
             running = False
+            print(a) #살아남은 시간 출력
 
         elif event.type == ADDENEMY:
             enemy = Enemy()
@@ -98,12 +109,19 @@ while running:
     enemies.update()
     
     #살아남은 시간
-    font = pygame.font.SysFont(None, 32)
+    font = pygame.font.SysFont(None, 32) #살아남은 시간 글자 폰트
     a = str(int(time.time() - startTime))
-    counting_text = font.render(a, 1, (0,0,0))
+    counting_text = font.render(a, True, (0,0,0))
     counting_rect = counting_text.get_rect(center = screen.get_rect().center)
-    screen.blit(counting_text, counting_rect)
+    screen.blit(counting_text, counting_rect) #살아남은 시간 화면에 표시
+
+    a = int(a)
+
+    #게임오버 화면에 표시(상황가정-살아남은 시간이 10을 넘어서면 게임오버 뜸)
+    if a>10:
+        screen.blit(txt_game_over, (x_pos_text,y_pos_text))
 
     pygame.display.update()
 
+pygame.time.delay(2000) #게임 종료 전 딜레이
 pygame.quit()
