@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
 import math #적 플레이어 추적
-import time #살아남은 
+import time #살아남은 시간
 
 pygame.init() #초기화
 
