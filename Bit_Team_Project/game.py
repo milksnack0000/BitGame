@@ -152,5 +152,4 @@ while running:
 
     pygame.display.update()
     clock.tick(720)
-
 pygame.quit()
