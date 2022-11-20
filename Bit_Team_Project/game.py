@@ -1,72 +1,86 @@
-import pygame
-import random
-from time import sleep
+import pygame, sys
 
-import pygame
-from pygame.locals import *
- 
-WINDOW_WIDTH = 480
-WIDOW_HEIGHT = 640
+
+WIDTH, HEIGHT = 400, 400
 
 WHITE = (255, 255, 255)
 
-FPS = 60
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Player, self).__init__()
-        self.image = pygame.image.load("player.png")
-        self.rect = self.image.get_rect()
-        self.rect.x = int(WINDOW_WIDTH)
-        self.rect.y = WIDOW_HEIGHT - self.rect.height
-        self.dx = 0
-        self.dy = 0
 
+pygame.init()
+win = pygame.display.set_mode((WIDTH, HEIGHT))
+clock = pygame.time.Clock()
+
+
+class Player:
+    def __init__(self, x, y):
+        self.x = int(x)
+        self.y = int(y)
+        self.rect = pygame.Rect(self.x, self.y, 30, 10)
+        self.color = (250, 250, 250)
+        self.velX = 0
+        self.velY = 0
+        self.left_pressed = False
+        self.right_pressed = False
+        self.up_pressed = False
+        self.down_pressed = False
+        self.speed = 4
+    
+    def draw(self, win):
+        pygame.draw.rect(win,self.color, self.rect)
+    
     def update(self):
-        self.rect.x += self.dx
-        self.rect.y += self.dy
+        self.velX = 0
+        self.velY = 0
+        if self.left_pressed and not self.right_pressed:
+            self.velX = -self.speed
+        if self.right_pressed and not self.left_pressed:
+            self.velX = self.speed
+        if self.up_pressed and not self.down_pressed:
+            self.velY = -self.speed
+        if self.down_pressed and not self.up_pressed:
+            self.velY = self.speed
+        
+        self.x += self.velX
+        self.y += self.velY
 
-        if self.rect.x < 0 or self.rect.x + self.rect.width > WINDOW_WIDTH:
-            self.rect.x -= self.dx
-
-
-        if self.rect.y < 0 or self.rect.y + self.rect.height > WIDOW_HEIGHT:
-
-            self.rect.y -= self.dy
-
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-#미사일
-
-
-def game_loop():
-    player = Player()
+        self.rect = pygame.Rect(int(self.x), int(self.y), 32, 32)
 
 
-
-    done = False
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.dx -= 5
-                elif event.key == pygame.K_RIGHT:
-                    player.dx += 5
-                elif event.key == pygame.K_UP:
-                    player.dy -= 5
-                elif event.key == pygame.K_DOWN:
-                    player.dy += 5                
+player = Player(WIDTH/2, HEIGHT/2)
 
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.KEY_LEFT or event.key == pygame.KEY_RIGHT:
-                    player.dx = 0
-                elif event.key == pygame.KEY_UP or event.key == pygame.KEY_DOWN:
-                    player.dy = 0
+while True:
 
-        player.update()    
-        player.draw(screen)
-        pygame.display.flip()
-pygame.quit()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                player.left_pressed = True
+            if event.key == pygame.K_RIGHT:
+                player.right_pressed = True
+            if event.key == pygame.K_UP:
+                player.up_pressed = True
+            if event.key == pygame.K_DOWN:
+                player.down_pressed = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                player.left_pressed = False
+            if event.key == pygame.K_RIGHT:
+                player.right_pressed = False
+            if event.key == pygame.K_UP:
+                player.up_pressed = False
+            if event.key == pygame.K_DOWN:
+                player.down_pressed = False
+        
+    
+    win.fill((12, 24, 36))  
+    player.draw(win)
+
+    
+    player.update()
+    pygame.display.flip()
+
+    clock.tick(120)
