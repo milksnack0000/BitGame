@@ -109,11 +109,13 @@ while running:
     enemies.update()
     
     #살아남은 시간
-    font = pygame.font.SysFont(None, 32) #살아남은 시간 글자 폰트
+    font = pygame.font.SysFont(None, 32)
     a = str(int(time.time() - startTime))
-    counting_text = font.render(a, True, (0,0,0))
-    counting_rect = counting_text.get_rect(center = screen.get_rect().center)
-    screen.blit(counting_text, counting_rect) #살아남은 시간 화면에 표시
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    print(center0)
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
 
     a = int(a)
 
