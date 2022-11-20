@@ -1,0 +1,110 @@
+import pygame
+from pygame.locals import *
+import math 
+
+pygame.init() 
+
+screen_width = 900
+screen_height = 1080
+screen = pygame.display.set_mode((screen_width, screen_height))
+WHITE = (255, 255, 255)
+pygame.display.set_caption("BIT_GAME")
+
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Player, self).__init__()
+
+        self.surf = pygame.image.load("player.png").convert_alpha() 
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL) 
+        self.rect = self.surf.get_rect()
+        self.rect.center = screen_width/2, screen_height/2
+
+player = Player()
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Enemy, self).__init__() 
+
+        self.surf = pygame.image.load("enemy.png").convert_alpha() 
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL) 
+        self.rect = self.surf.get_rect()
+        self.rect.center = screen_width/6, screen_height/4
+
+enemy = Enemy()
+
+
+
+class Attack(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Attack, self).__init__() 
+
+        self.surf = pygame.image.load("New Piskel.png").convert_alpha() 
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        self.rect = self.surf.get_rect()
+        
+
+
+
+second = 250
+ADDATTACK = pygame.USEREVENT + 1
+pygame.time.set_timer(ADDATTACK, second) #현재 0.25초마다 실행
+
+
+attacks = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+all_sprites.add(enemy)
+
+
+
+dx, dy = 0,0
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        
+           
+        
+        elif event.type == ADDATTACK:
+            attack = Attack()
+            
+            
+            coordinate = 0, 0
+            x = player.rect.x
+            y = player.rect.y
+            coordinate = x, y
+           
+            
+
+            attack.rect.center = coordinate
+            attacks.add(attack)
+            all_sprites.add(attack)
+
+    
+    px = enemy.rect.x
+    py = enemy.rect.y
+    for attack in attacks:
+        
+        dx, dy = px - attack.rect.x, py - attack.rect.y
+        dist = math.hypot(dx, dy)
+        if dist != 0:
+            dx, dy = dx / dist, dy / dist  
+    
+        
+        attack.rect.x += dx * 1
+        attack.rect.y += dy * 1
+
+    screen.fill(WHITE)
+
+
+    for entity in all_sprites:
+        screen.blit(entity.surf, entity.rect)
+    
+    attacks.update()
+    pygame.display.update()
+
+pygame.quit()
