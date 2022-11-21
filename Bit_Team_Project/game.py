@@ -1,43 +1,37 @@
 import pygame, sys
 from random import randint
 
-class Tree(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):  #player class
 	def __init__(self,pos,group):
 		super().__init__(group)
-		self.image = pygame.image.load('tree.png').convert_alpha()
-		self.rect = self.image.get_rect(topleft = pos)
-
-class Player(pygame.sprite.Sprite):
-	def __init__(self,pos,group):
-		super().__init__(group)
-		self.image = pygame.image.load('player.png').convert_alpha()
+		self.image = pygame.image.load('player.png').convert_alpha() #player 이미지 띄우게 하는 코드
 		self.rect = self.image.get_rect(center = pos)
-		self.direction = pygame.math.Vector2()
-		self.speed = 5
+		self.direction = pygame.math.Vector2()   
+		self.speed = 5 #player speed 5로 설정
 
-	def input(self):
+	def input(self):         #키보드에서 방향키를 눌렀을때 방향키에 따라 Player를 이동시키는 함수
 		keys = pygame.key.get_pressed()
 
-		if keys[pygame.K_UP]:
-			self.direction.y = -1
-		elif keys[pygame.K_DOWN]:
-			self.direction.y = 1
+		if keys[pygame.K_UP]:   #위쪽 화살표를 눌렀을때
+			self.direction.y = -1 #카마라를 y축에서 -1만큼 이동
+		elif keys[pygame.K_DOWN]: #아래쪽 화살표를 눌렀을때
+			self.direction.y = 1#카메라를 y축에서 1만큼 이동
 		else:
-			self.direction.y = 0
+			self.direction.y = 0#아무것도 눌러진 것이 없으면 카메라를 y축에서 0만큼 이동
 
-		if keys[pygame.K_RIGHT]:
-			self.direction.x = 1
-		elif keys[pygame.K_LEFT]:
-			self.direction.x = -1
+		if keys[pygame.K_RIGHT]:#오른쪽 화살표를 눌렀을때
+			self.direction.x = 1#카메라를 x축에서 -1만큼 이동
+		elif keys[pygame.K_LEFT]:#왼쪽 화살표를 눌렀을때
+			self.direction.x = -1#카메라를 x축의 -1만큼 이동
 		else:
-			self.direction.x = 0
+			self.direction.x = 0#아무것도 눌러진 것이 없으면 카메라를 x축에서 0만큼 이동
 
-	def update(self):
+	def update(self):  #카메라 속도와 방향을 키보드를 눌렀을 때의 속도와 방향을 곱한것으로 한다.
 		self.input()
 		self.rect.center += self.direction * self.speed
 
-class CameraGroup(pygame.sprite.Group):
-	def __init__(self):
+class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
+	def __init__(self):                  
 		super().__init__()
 		self.display_surface = pygame.display.get_surface()
 
@@ -45,23 +39,10 @@ class CameraGroup(pygame.sprite.Group):
 		self.offset = pygame.math.Vector2()
 		self.half_w = self.display_surface.get_size()[0] // 2
 		self.half_h = self.display_surface.get_size()[1] // 2
-
-		# box setup
-		self.camera_borders = {'left': 200, 'right': 200, 'top': 100, 'bottom': 100}
-		l = self.camera_borders['left']
-		t = self.camera_borders['top']
-		w = self.display_surface.get_size()[0]  - (self.camera_borders['left'] + self.camera_borders['right'])
-		h = self.display_surface.get_size()[1]  - (self.camera_borders['top'] + self.camera_borders['bottom'])
-		self.camera_rect = pygame.Rect(l,t,w,h)
-
 		# ground
-		self.ground_surf = pygame.image.load('ground.png').convert_alpha()
+		self.ground_surf = pygame.image.load('ground.png').convert_alpha() #ground 이미지를 띠우게 하는 코드
 		self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
-
-		# camera speed
-		self.keyboard_speed = 5
-		self.mouse_speed = 0.2
-
+        
 		# zoom 
 		self.zoom_scale = 1
 		self.internal_surf_size = (2500,2500)
@@ -90,8 +71,8 @@ class CameraGroup(pygame.sprite.Group):
 		self.offset.x = self.camera_rect.left - self.camera_borders['left']
 		self.offset.y = self.camera_rect.top - self.camera_borders['top']
 
-	def keyboard_control(self):
-		keys = pygame.key.get_pressed()
+	def keyboard_control(self):  #kewborard control
+		keys = pygame.key.get_pressed() 
 		if keys[pygame.K_a]: self.camera_rect.x -= self.keyboard_speed
 		if keys[pygame.K_d]: self.camera_rect.x += self.keyboard_speed
 		if keys[pygame.K_w]: self.camera_rect.y -= self.keyboard_speed
@@ -129,11 +110,6 @@ pygame.event.set_grab(True)
 # setup 
 camera_group = CameraGroup()
 player = Player((640,360),camera_group)
-
-for i in range(20):
-	random_x = randint(1000,2000)
-	random_y = randint(1000,2000)
-	Tree((random_x,random_y),camera_group)
 
 while True:
 	for event in pygame.event.get():
