@@ -42,7 +42,7 @@ class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
 		# ground
 		self.ground_surf = pygame.image.load('ground.png').convert_alpha() #ground 이미지를 띠우게 하는 코드
 		self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
-        
+
 		# zoom 
 		self.zoom_scale = 1
 		self.internal_surf_size = (2500,2500)
@@ -56,30 +56,6 @@ class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
 	def center_target_camera(self,target):
 		self.offset.x = target.rect.centerx - self.half_w
 		self.offset.y = target.rect.centery - self.half_h
-
-	def box_target_camera(self,target):
-
-		if target.rect.left < self.camera_rect.left:
-			self.camera_rect.left = target.rect.left
-		if target.rect.right > self.camera_rect.right:
-			self.camera_rect.right = target.rect.right
-		if target.rect.top < self.camera_rect.top:
-			self.camera_rect.top = target.rect.top
-		if target.rect.bottom > self.camera_rect.bottom:
-			self.camera_rect.bottom = target.rect.bottom
-
-		self.offset.x = self.camera_rect.left - self.camera_borders['left']
-		self.offset.y = self.camera_rect.top - self.camera_borders['top']
-
-	def keyboard_control(self):  #kewborard control
-		keys = pygame.key.get_pressed() 
-		if keys[pygame.K_a]: self.camera_rect.x -= self.keyboard_speed
-		if keys[pygame.K_d]: self.camera_rect.x += self.keyboard_speed
-		if keys[pygame.K_w]: self.camera_rect.y -= self.keyboard_speed
-		if keys[pygame.K_s]: self.camera_rect.y += self.keyboard_speed
-
-		self.offset.x = self.camera_rect.left - self.camera_borders['left']
-		self.offset.y = self.camera_rect.top - self.camera_borders['top']
 
 	def custom_draw(self,player):
 		
