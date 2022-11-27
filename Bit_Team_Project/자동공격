@@ -50,12 +50,13 @@ class Attack(pygame.sprite.Sprite):
 
 second = 250
 ADDATTACK = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDATTACK, second) #현재 0.25초마다 실행
+pygame.time.set_timer(ADDATTACK, second) 
 
 
 attacks = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 all_sprites.add(enemy)
+all_sprites.add(player)
 
 
 
