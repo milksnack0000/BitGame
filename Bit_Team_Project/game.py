@@ -37,29 +37,29 @@ class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
 
 		# camera offset 
 		self.offset = pygame.math.Vector2()
-		self.half_w = self.display_surface.get_size()[0] // 2
-		self.half_h = self.display_surface.get_size()[1] // 2
+		self.half_w = self.display_surface.get_size()[0] // 2   #ground의 이미지의 넓이의 크키를 조정
+		self.half_h = self.display_surface.get_size()[1] // 2   #ground의 이미지의 높이의 크기를 조정
 		# ground
 		self.ground_surf = pygame.image.load('ground.png').convert_alpha() #ground 이미지를 띠우게 하는 코드
 		self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
 
 		# zoom 
 		self.zoom_scale = 1
-		self.internal_surf_size = (2500,2500)
+		self.internal_surf_size = (2500,2500)#게임화면의 크기를 보여주는 코드
 		self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
 		self.internal_rect = self.internal_surf.get_rect(center = (self.half_w,self.half_h))
 		self.internal_surface_size_vector = pygame.math.Vector2(self.internal_surf_size)
 		self.internal_offset = pygame.math.Vector2()
 		self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
-		self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h
+		self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h  
 
-	def center_target_camera(self,target):
-		self.offset.x = target.rect.centerx - self.half_w
-		self.offset.y = target.rect.centery - self.half_h
+	def center_target_camera(self,target):   #cnnter_target_carmera 
+		self.offset.x = target.rect.centerx - self.half_w #카메라를 x축 방향으로 움직이면 카메라에서 이미지크키를 뺀 것으로 한다.
+		self.offset.y = target.rect.centery - self.half_h #카메라를 y축 방향으로 움직이면 카메라에서 이미지크기를 뺀 것으로 한다.
 
 	def custom_draw(self,player):
 		
-		self.center_target_camera(player)
+		self.center_target_camera(player) #centet_target_carmera에서 player가 동작할수 있도록 하는 코드
 
 		self.internal_surf.fill('#71ddee')
 
@@ -68,11 +68,11 @@ class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
 		self.internal_surf.blit(self.ground_surf,ground_offset)
 
 		# active elements
-		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
-			offset_pos = sprite.rect.topleft - self.offset + self.internal_offset
+		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery): #캐릭터를 화면에 게임이 진행되는 동안 화면에 띄워주는 코드
+			offset_pos = sprite.rect.topleft - self.offset + self.internal_offset 
 			self.internal_surf.blit(sprite.image,offset_pos)
 
-		scaled_surf = pygame.transform.scale(self.internal_surf,self.internal_surface_size_vector * self.zoom_scale)
+		scaled_surf = pygame.transform.scale(self.internal_surf,self.internal_surface_size_vector * self.zoom_scale)#캐릭터의 위치를 잡아 주는 코드
 		scaled_rect = scaled_surf.get_rect(center = (self.half_w,self.half_h))
 
 		self.display_surface.blit(scaled_surf,scaled_rect)
