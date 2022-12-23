@@ -51,11 +51,19 @@ class Player(pygame.sprite.Sprite):
             self.level + 1
 
     def draw_exp(self):
+        #경험치 글씨
+        exp_font = pygame.font.SysFont("None", 40, True)
+        exp_text = exp_font.render("EXP", True, (90,90,90))
+
         exp_bar_width = int(self.current_exp / self.exp_ratio)
-        exp_bar = pygame.Rect(screen_width/2 -250 , 0, exp_bar_width,20)
+        exp_bar = pygame.Rect(screen_width/2 -250 , 0, exp_bar_width,30)
+        exp_bar2 = pygame.Rect(screen_width/2 -250 , 0, self.exp_bar_length,30)
 		
+        pygame.draw.rect(screen,(255,255,0),exp_bar2)
         pygame.draw.rect(screen,(50,238,254),exp_bar)	
-        pygame.draw.rect(screen,(0, 0, 0),(screen_width/2 -250 , 0, self.exp_bar_length,20),5)
+        screen.blit(exp_text, (screen_width/2 -40 , 27))
+        pygame.draw.rect(screen,(0, 0, 0),(screen_width/2 -250 , 0, self.exp_bar_length,30),5)
+        
 
     def get_damage(self,amount):
         if self.target_health > 0:
@@ -96,25 +104,24 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_UP]:   
-	        self.direction.y = -1
+            self.direction.y = -1
         elif keys[pygame.K_DOWN]:
-	        self.direction.y = 1
+            self.direction.y = 1
         else:
-	        self.direction.y = 0
+            self.direction.y = 0
 
         if keys[pygame.K_RIGHT]:
-	        self.direction.x = 1
+            self.direction.x = 1
         elif keys[pygame.K_LEFT]:
-	        self.direction.x = -1
+            self.direction.x = -1
         else:
-	        self.direction.x = 0
+            self.direction.x = 0
 
     def update(self): 
         self.input()
         self.rect.center += self.direction * self.speed
 
-#경험치 글씨
-exp_font = pygame.font.
+
 
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
