@@ -35,6 +35,8 @@ class Player(pygame.sprite.Sprite):
         self.health_ratio = self.max_health / self.health_bar_length
         self.health_change_speed = 2
         self.experiance = 0
+        self.attacking = False
+        self.attack_frame = 0
 
     def get_damage(self,amount):
         if self.target_health > 0:
@@ -92,6 +94,24 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.rect.center += self.direction * self.speed
 
+    def attack(self):        
+      # If attack frame has reached end of sequence, return to base frame      
+        if self.attack_frame > 10:
+            self.attack_frame = 0
+            self.attacking = False
+        self.attack_frame += 1
+
+    def player_hit(self):
+        if self.cooldown == False:      
+            self.cooldown = True # Enable the cooldown
+            pygame.time.set_timer(hit_cooldown, 1000) # Resets cooldown in 1 second
+ 
+            self.target_health = self.target_health - 1
+             
+            if self.target_health <= 0:
+                self.kill()
+                pygame.display.update()
+        
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -114,12 +134,12 @@ def update(self):
       elif hits and player.attacking == False:
             player.player_hit()
 
-def colllided():
+def collided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
     if pygame.sprite.spritecollideany(player, enemies):
         player.get_damage(1)
     
-
+get_damage = ()
 
 # 카메라
 class CameraGroup(pygame.sprite.Group):    
@@ -194,6 +214,16 @@ all_sprites.add(player)
 #적 플레이어 추적
 dx, dy = 0,0
 
+hit_cooldown = pygame.USEREVENT + 1
+#실행
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == hit_cooldown:
+            player.cooldown = False
+        if event.type == pygame.QUIT:
+            running = False 
+
 #실행
 running = True
 while running:
@@ -222,6 +252,8 @@ while running:
 
     #화면표시
     screen.fill(WHITE)
+
+    collided()
 
     #적과 플레이어 화면에 표시
     camera_group.update()
