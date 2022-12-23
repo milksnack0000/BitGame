@@ -1,106 +1,93 @@
-import pygame, sys
-from random import randint
 
-class Player(pygame.sprite.Sprite):  #player class
-	def __init__(self,pos,group):
-		super().__init__(group)
-		self.image = pygame.image.load('player.png').convert_alpha() #player 이미지 띄우게 하는 코드
-		self.rect = self.image.get_rect(center = pos)
-		self.direction = pygame.math.Vector2()   
-		self.speed = 5 #player speed 5로 설정
-
-	def input(self):         #키보드에서 방향키를 눌렀을때 방향키에 따라 Player를 이동시키는 함수
-		keys = pygame.key.get_pressed()
-
-		if keys[pygame.K_UP]:   #위쪽 화살표를 눌렀을때
-			self.direction.y = -1 #카마라를 y축에서 -1만큼 이동
-		elif keys[pygame.K_DOWN]: #아래쪽 화살표를 눌렀을때
-			self.direction.y = 1#카메라를 y축에서 1만큼 이동
-		else:
-			self.direction.y = 0#아무것도 눌러진 것이 없으면 카메라를 y축에서 0만큼 이동
-
-		if keys[pygame.K_RIGHT]:#오른쪽 화살표를 눌렀을때
-			self.direction.x = 1#카메라를 x축에서 -1만큼 이동
-		elif keys[pygame.K_LEFT]:#왼쪽 화살표를 눌렀을때
-			self.direction.x = -1#카메라를 x축의 -1만큼 이동
-		else:
-			self.direction.x = 0#아무것도 눌러진 것이 없으면 카메라를 x축에서 0만큼 이동
-
-	def update(self):  #카메라 속도와 방향을 키보드를 눌렀을 때의 속도와 방향을 곱한것으로 한다.
-		self.input()
-		self.rect.center += self.direction * self.speed
-
-class CameraGroup(pygame.sprite.Group):    #카메라를 띠우는 클래스
-	def __init__(self):                  
-		super().__init__()
-		self.display_surface = pygame.display.get_surface()
-
-		# camera offset 
-		self.offset = pygame.math.Vector2()
-		self.half_w = self.display_surface.get_size()[0] // 2   #ground의 이미지의 넓이의 크키를 조정
-		self.half_h = self.display_surface.get_size()[1] // 2   #ground의 이미지의 높이의 크기를 조정
-		# ground
-		self.ground_surf = pygame.image.load('ground.png').convert_alpha() #ground 이미지를 띠우게 하는 코드
-		self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
-
-		# zoom 
-		self.zoom_scale = 1
-		self.internal_surf_size = (2500,2500)#게임화면의 크기를 보여주는 코드
-		self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
-		self.internal_rect = self.internal_surf.get_rect(center = (self.half_w,self.half_h))
-		self.internal_surface_size_vector = pygame.math.Vector2(self.internal_surf_size)
-		self.internal_offset = pygame.math.Vector2()
-		self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
-		self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h  
-
-	def center_target_camera(self,target):   #cnnter_target_carmera 
-		self.offset.x = target.rect.centerx - self.half_w #카메라를 x축 방향으로 움직이면 카메라에서 이미지크키를 뺀 것으로 한다.
-		self.offset.y = target.rect.centery - self.half_h #카메라를 y축 방향으로 움직이면 카메라에서 이미지크기를 뺀 것으로 한다.
-
-	def custom_draw(self,player):
-		
-		self.center_target_camera(player) #centet_target_carmera에서 player가 동작할수 있도록 하는 코드
-
-		self.internal_surf.fill('#71ddee')
-
-		# ground 
-		ground_offset = self.ground_rect.topleft - self.offset + self.internal_offset
-		self.internal_surf.blit(self.ground_surf,ground_offset)
-
-		# active elements
-		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery): #캐릭터를 화면에 게임이 진행되는 동안 화면에 띄워주는 코드
-			offset_pos = sprite.rect.topleft - self.offset + self.internal_offset 
-			self.internal_surf.blit(sprite.image,offset_pos)
-
-		scaled_surf = pygame.transform.scale(self.internal_surf,self.internal_surface_size_vector * self.zoom_scale)#캐릭터의 위치를 잡아 주는 코드
-		scaled_rect = scaled_surf.get_rect(center = (self.half_w,self.half_h))
-
-		self.display_surface.blit(scaled_surf,scaled_rect)
-
+import pygame
 
 pygame.init()
-screen = pygame.display.set_mode((1280,720))
-clock = pygame.time.Clock()
-pygame.event.set_grab(True)
 
-# setup 
-camera_group = CameraGroup()
-player = Player((640,360),camera_group)
+WIDTH = 500
+HEIGHT = 500
+fps = 60
+timer = pygame.time.Clock()
+screen = pygame.display.set_mode([WIDTH, HEIGHT])
+main_menu = False
+font = pygame.font.Font('freesansbold.ttf', 24)
+bg = pygame.transform.scale(pygame.image.load('Logo.png'), (300, 300))
+ball = pygame.transform.scale(pygame.image.load('Logo.png'), (150, 150))
+menu_command = 0
 
-while True:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			pygame.quit()
-			sys.exit()
-		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_ESCAPE:
-				pygame.quit()
-				sys.exit()
 
-	screen.fill('#71ddee')
+class Button:
+    def __init__(self, txt, pos):
+        self.text = txt
+        self.pos = pos
+        self.button = pygame.rect.Rect((self.pos[0], self.pos[1]), (260, 40))
 
-	camera_group.update()
-	camera_group.custom_draw(player)
+    def draw(self):
+        pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
+        pygame.draw.rect(screen, 'dark gray', [self.pos[0], self.pos[1], 260, 40], 5, 5)
+        text2 = font.render(self.text, True, 'black')
+        screen.blit(text2, (self.pos[0] + 15, self.pos[1] + 7))
 
-	pygame.display.update()
-	clock.tick(60)
+    def check_clicked(self):
+        if self.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            return True
+        else:
+            return False
+
+
+def draw_menu():
+    command = -1
+    pygame.draw.rect(screen, 'black', [100, 100, 300, 300])
+    screen.blit(bg, (100, 100))
+    pygame.draw.rect(screen, 'green', [100, 100, 300, 300], 5)
+    pygame.draw.rect(screen, 'white', [120, 120, 260, 40], 0, 5)
+    pygame.draw.rect(screen, 'gray', [120, 120, 260, 40], 5, 5)
+    txt = font.render('Menus Tutorial!', True, 'black')
+    screen.blit(txt, (135, 127))
+    # menu 탈출 버튼
+    menu = Button('Exit Menu', (120, 350))
+    menu.draw()
+    button1 = Button('Button 1', (120, 180))
+    button1.draw()
+    button2 = Button('Button 2', (120, 240))
+    button2.draw()
+    button3 = Button('Button 3', (120, 300))
+    button3.draw()
+    if menu.check_clicked():
+        command = 0
+    if button1.check_clicked():
+        command = 1
+    if button2.check_clicked():
+        command = 2
+    if button3.check_clicked():
+        command = 3
+    return command
+
+
+def draw_game():
+    menu_btn = Button('Main Menu', (230, 450))
+    menu_btn.draw()
+    menu = menu_btn.check_clicked()
+    screen.blit(ball, (175, 175))
+    return menu
+
+
+run = True
+while run:
+    screen.fill('light blue')
+    timer.tick(fps)
+    if main_menu:
+        menu_command = draw_menu()
+        if menu_command != -1:
+            main_menu = False
+    else:
+        main_menu = draw_game()
+        if menu_command > 0:
+            text = font.render(f'Button {menu_command} pressed!', True, 'black')
+            screen.blit(text, (150, 100))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    pygame.display.flip()
+pygame.quit()
