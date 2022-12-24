@@ -55,13 +55,19 @@ running = True
 startTime = time.time() # 시작 시간(살아남은 시간)
 
 #게임오버 화면
-font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
-txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
+def showGameOverScreen():
+    font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
+    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
 
-size_txt_gameover_width = txt_game_over.get_rect().size[0]
-size_txt_gameover_height = txt_game_over.get_rect().size[1]
-x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
-y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
+    size_txt_gameover_width = txt_game_over.get_rect().size[0]
+    size_txt_gameover_height = txt_game_over.get_rect().size[1]
+    x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
+    y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
+    screen.fill(WHITE)
+    pygame.time.wait(500)
+    screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
+    screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
+
 
 while running:
 
@@ -113,17 +119,20 @@ while running:
     a = str(int(time.time() - startTime))
     counting_text = font.render(a, 1, (0,0,0))
     center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
-    print(center0)
     counting_rect = counting_text.get_rect(center = center0)
     screen.blit(counting_text, counting_rect)
+    print(a)
 
-    a = int(a)
+    gamepoint = int(a)
 
     #게임오버 화면에 표시(상황가정-살아남은 시간이 10을 넘어서면 게임오버 뜸)
-    if a>10:
-        screen.blit(txt_game_over, (x_pos_text,y_pos_text))
-
+    if gamepoint>10:
+        running = False
+        gamepoint = font.render(a, 1, (0,0,0))
+        showGameOverScreen()
+       
     pygame.display.update()
 
-pygame.time.delay(2000) #게임 종료 전 딜레이
+
+pygame.time.delay(3000) #게임 종료 전 딜레이
 pygame.quit()
