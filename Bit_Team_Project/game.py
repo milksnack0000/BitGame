@@ -125,8 +125,10 @@ while running:
 
     gamepoint = int(a)
 
-    #게임오버 화면에 표시(상황가정-살아남은 시간이 10을 넘어서면 게임오버 뜸)
-    if gamepoint>10:
+    pressed = pygame.key.get_pressed()
+
+    #게임오버 화면에 표시(스페이스바 누르면)
+    if pressed[pygame.K_SPACE] :
         running = False
         gamepoint = font.render(a, 1, (0,0,0))
         showGameOverScreen()
