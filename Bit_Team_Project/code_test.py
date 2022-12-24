@@ -16,8 +16,11 @@ pygame.display.set_caption("BIT_GAME")
 main_menu = False
 font = pygame.font.Font('freesansbold.ttf', 24)
 menu_command = 0
+<<<<<<< HEAD
 mmm = True
 whole_ticks = 0
+=======
+>>>>>>> 20d8065aad402f6fb59461047cf3460b06bf8661
 
 class Button:
     def __init__(self, txt, pos):
@@ -274,7 +277,11 @@ dx, dy = 0,0
 #실행
 running = True
 while running:
+<<<<<<< HEAD
     clock.tick(60)
+=======
+    
+>>>>>>> 20d8065aad402f6fb59461047cf3460b06bf8661
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -326,9 +333,24 @@ while running:
         pygame.display.update()
 
 
+    if main_menu:
+        menu_command = draw_menu()
+        if menu_command != -1:
+            main_menu = False
+    else:
+        main_menu = draw_game()
+        if menu_command > 0:
+            text = font.render(f'Button {menu_command} pressed!', True, 'black')
+            screen.blit(text, (150, 100))
+
+
     pygame.display.update()
     whole_ticks += 1
 
 
 pygame.quit()
 
+<<<<<<< HEAD
+=======
+pygame.quit()
+>>>>>>> 20d8065aad402f6fb59461047cf3460b06bf8661
