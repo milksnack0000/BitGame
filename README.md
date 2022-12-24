@@ -22,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
         self.rect = self.surf.get_rect()
         self.rect.center = screen_width//2, screen_height//2
-
+        self.cooldown = False
 		# 플레이어 이동
         self.direction = pygame.math.Vector2() 
         self.speed = 5 
@@ -137,7 +137,7 @@ def update(self):
 def collided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
     if pygame.sprite.spritecollideany(player, enemies):
-        player.get_damage(1)
+        player.get_damage(5)
     
 get_damage = ()
 
@@ -214,20 +214,14 @@ all_sprites.add(player)
 #적 플레이어 추적
 dx, dy = 0,0
 
-hit_cooldown = pygame.USEREVENT + 1
+hit_cooldown = pygame.USEREVENT + 2
+
 #실행
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == hit_cooldown:
             player.cooldown = False
-        if event.type == pygame.QUIT:
-            running = False 
-
-#실행
-running = True
-while running:
-    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
@@ -249,7 +243,7 @@ while running:
         # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
         enemy.rect.x += round(dx * 2)
         enemy.rect.y += round(dy * 2)
-
+    player.player_hit()
     #화면표시
     screen.fill(WHITE)
 
