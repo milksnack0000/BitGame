@@ -12,6 +12,62 @@ screen_height = int(screen.get_height())
 WHITE = (255, 255, 255)
 pygame.display.set_caption("BIT_GAME")
 
+main_menu = False
+font = pygame.font.Font('freesansbold.ttf', 24)
+menu_command = 0
+
+class Button:
+    def __init__(self, txt, pos):
+        self.text = txt
+        self.pos = pos
+        self.button = pygame.rect.Rect((self.pos[0], self.pos[1]), (260, 40))
+
+    def draw(self):
+        pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
+        pygame.draw.rect(screen, 'dark gray', [self.pos[0], self.pos[1], 260, 40], 5, 5)
+        text2 = font.render(self.text, True, 'black')
+        screen.blit(text2, (self.pos[0] + 15, self.pos[1] + 7))
+
+    def check_clicked(self):
+        if self.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            return True
+        else:
+            return False
+
+def draw_menu():
+    command = -1
+    pygame.draw.rect(screen, 'black', [100, 100, 300, 300])
+    pygame.draw.rect(screen, 'green', [100, 100, 300, 300], 5)
+    pygame.draw.rect(screen, 'white', [120, 120, 260, 40], 0, 5)
+    pygame.draw.rect(screen, 'gray', [120, 120, 260, 40], 5, 5)
+    txt = font.render('Menus Tutorial!', True, 'black')
+    screen.blit(txt, (135, 127))
+    # menu 탈출 버튼
+    menu = Button('Exit Menu', (120, 350))
+    menu.draw()
+    button1 = Button('Button 1', (120, 180))
+    button1.draw()
+    button2 = Button('Button 2', (120, 240))
+    button2.draw()
+    button3 = Button('Button 3', (120, 300))
+    button3.draw()
+    if menu.check_clicked():
+        command = 0
+    if button1.check_clicked():
+        command = 1
+    if button2.check_clicked():
+        command = 2
+    if button3.check_clicked():
+        command = 3
+    return command
+
+
+def draw_game():
+    menu_btn = Button('Main Menu', (230, 450))
+    menu_btn.draw()
+    menu = menu_btn.check_clicked()
+    return menu
+
 
 # 플레이어, Sprite 클래스를 바탕으로 만듦
 class Player(pygame.sprite.Sprite):
@@ -215,6 +271,7 @@ dx, dy = 0,0
 #실행
 running = True
 while running:
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -248,6 +305,17 @@ while running:
     enemies.update()
     player.advanced_health()
     player.draw_exp()
+
+    if main_menu:
+        menu_command = draw_menu()
+        if menu_command != -1:
+            main_menu = False
+    else:
+        main_menu = draw_game()
+        if menu_command > 0:
+            text = font.render(f'Button {menu_command} pressed!', True, 'black')
+            screen.blit(text, (150, 100))
+
 
     pygame.display.update()
     clock.tick(60)
