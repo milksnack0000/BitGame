@@ -2,7 +2,6 @@ import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
-import numpy
 
 pygame.init() # 초기화
 
@@ -13,32 +12,6 @@ screen_height = int(screen.get_height())
 WHITE = (255, 255, 255)
 pygame.display.set_caption("BIT_GAME")
 
-displaysurface = pygame.display.set_mode((screen_width, screen_height))
-
-# 아이템
-class Item(pygame.sprite.Sprite):
-    def __init__(self, itemtype):
-        super().__init__()
-        if itemtype == 1: self.image = pygame.image.load("heart.png")
-        elif itemtype == 2: self.image = pygame.image.load(".png")
-        self.rect = self.image.get_rect()
-        self.type = itemtype
-        self.posx = 0
-        self.posy = 0
-    def render(self):
-        self.rect.x = self.posx
-        self.rect.y = self.posy
-        displaysurface.blit(self.image, self.rect)
-    def update(self):
-      hits = pygame.sprite.spritecollide(self, Playergroup, False)
-      # Code to be activated if item comes in contact with player
-      if hits:
-            if player.target_health < 1000 and self.type == 1:
-                  player.target_health += 100
-                  self.kill()
-            if self.type == 2:
-                  # 두번째 아이템
-                  self.kill()
 
 # 플레이어, Sprite 클래스를 바탕으로 만듦
 class Player(pygame.sprite.Sprite):
@@ -164,12 +137,6 @@ class Enemy(pygame.sprite.Sprite):
         if hits and player.attacking == True:
             self.get_damage(10)
             player.experiance += 1   # Release expeiriance
-        rand_num = numpy.random.uniform(0, 100)
-        item_no = 0
-        if rand_num >= 0 and rand_num <= 1:  # 1 / 20 chance for an item (health) drop
-            item_no = 1
-        elif rand_num > 1 and rand_num <= 2    :
-            item_no = 2
  
       # If collision has occured and player not attacking, call "hit" function            
         elif hits and player.attacking == False:
