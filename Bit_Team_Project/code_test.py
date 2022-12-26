@@ -1,263 +1,41 @@
 import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
-import math # 적 플레이어 추적
-import skill
+import math #적 플레이어 추적
+import time #살아남은 시간
 
-pygame.init() # 초기화
+pygame.init() #초기화
 
-# 화면 설정
-screen = pygame.display.set_mode((0,0), FULLSCREEN)
-screen_width = int(screen.get_width())
-screen_height = int(screen.get_height())
+#화면 설정
+screen_width = 900
+screen_height = 1080
+screen = pygame.display.set_mode((screen_width, screen_height))
 WHITE = (255, 255, 255)
 pygame.display.set_caption("BIT_GAME")
 
-main_menu = False
-font = pygame.font.Font('freesansbold.ttf', 24)
-menu_command = 0
-mmm = True
-whole_ticks = 0
 
-class Button:
-    def __init__(self, txt, pos):
-        self.text = txt
-        self.pos = pos
-        self.button = pygame.rect.Rect((self.pos[0], self.pos[1]), (260, 40))
-
-    def draw(self):
-        pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
-        pygame.draw.rect(screen, 'dark gray', [self.pos[0], self.pos[1], 260, 40], 5, 5)
-        text2 = font.render(self.text, True, 'black')
-        screen.blit(text2, (self.pos[0] + 15, self.pos[1] + 7))
-
-    def check_clicked(self):
-        if self.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
-            return True
-        else:
-            return False
-
-def draw_menu():
-    command = -1
-    pygame.draw.rect(screen, 'black', [100, 100, 300, 300])
-    pygame.draw.rect(screen, 'green', [100, 100, 300, 300], 5)
-    pygame.draw.rect(screen, 'white', [120, 120, 260, 40], 0, 5)
-    pygame.draw.rect(screen, 'gray', [120, 120, 260, 40], 5, 5)
-    txt = font.render('Menus Tutorial!', True, 'black')
-    screen.blit(txt, (135, 127))
-    # menu 탈출 버튼
-    menu = Button('Exit Menu', (120, 350))
-    menu.draw()
-    button1 = Button('Button 1', (120, 180))
-    button1.draw()
-    button2 = Button('Button 2', (120, 240))
-    button2.draw()
-    button3 = Button('Button 3', (120, 300))
-    button3.draw()
-    if menu.check_clicked():
-        command = 0
-    if button1.check_clicked():
-        command = 1
-    if button2.check_clicked():
-        command = 2
-    if button3.check_clicked():
-        command = 3
-    return command
-
-
-def draw_game():
-    menu_btn = Button('Main Menu', (230, 450))
-    menu_btn.draw()
-    menu = menu_btn.check_clicked()
-    return menu
-
-
-# 플레이어, Sprite 클래스를 바탕으로 만듦
+#플레이어, Sprite 클래스를 바탕으로 만듦
 class Player(pygame.sprite.Sprite):
     def __init__(self):
-        super(Player, self).__init__() # 여기까지 무시해도 됨
+        super(Player, self).__init__() #여기까지 무시해도 됨
 
-        self.surf = pygame.image.load("Sprite/player.png").convert_alpha() # 이미지 불러오기
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
+        self.surf = pygame.image.load("Sprite/player.png").convert_alpha() #이미지 불러오기
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL) #투명한 부분 색 선택
         self.rect = self.surf.get_rect()
-        self.rect.center = screen_width//2, screen_height//2
+        self.rect.center = screen_width/2, screen_height/2
 
-        # 레벨
-        self.level = 1
-        self.current_exp = 50
-        self.max_exp = 100 * (1 + self.level/10)
-        self.exp_bar_length = 500
-        self.surplus_exp = 0
-        self.exp_ratio = self.max_exp / self.exp_bar_length
-
-		# 플레이어 이동
-        self.direction = pygame.math.Vector2()
-        self.speed = 5 
-
-        # 체력
-        self.current_health = 200
-        self.target_health = 1000
-        self.max_health = 1000
-        self.health_bar_length = 40
-        self.health_ratio = self.max_health / self.health_bar_length
-        self.health_change_speed = 2
-
-    def get_exp(self,amount):
-        self.current_exp += amount
-        if self.current_exp >= self.max_exp:
-            self.surplus_exp = self.current_exp - self.max_exp
-            self.current_health = 0
-            self.level + 1
-
-    def draw_exp(self):
-        #경험치 글씨
-        exp_font = pygame.font.SysFont("None", 40, True)
-        exp_text = exp_font.render("EXP", True, (90,90,90))
-
-        exp_bar_width = int(self.current_exp / self.exp_ratio)
-        exp_bar = pygame.Rect(screen_width/2 -250 , 0, exp_bar_width,30)
-        exp_bar2 = pygame.Rect(screen_width/2 -250 , 0, self.exp_bar_length,30)
-		
-        pygame.draw.rect(screen,(255,255,0),exp_bar2)
-        pygame.draw.rect(screen,(50,238,254),exp_bar)	
-        screen.blit(exp_text, (screen_width/2 -40 , 27))
-        pygame.draw.rect(screen,(0, 0, 0),(screen_width/2 -250 , 0, self.exp_bar_length,30),5)
-        
-
-    def get_damage(self,amount):
-        if self.target_health > 0:
-            self.target_health -= amount
-        if self.target_health < 0:
-            self.target_health = 0
-
-    def get_health(self,amount):
-        if self.target_health < self.max_health:
-            self.target_health += amount
-        if self.target_health > self.max_health:
-            self.target_health = self.max_health
-
-    def advanced_health(self):
-        transition_width = 0
-        transition_color = (255,0,0)
-
-        if self.current_health < self.target_health:
-            self.current_health += self.health_change_speed
-            transition_width = int((self.target_health - self.current_health) / self.health_ratio)
-            transition_color = (0,255,0)
-
-        if self.current_health > self.target_health:
-            self.current_health -= self.health_change_speed 
-            transition_width = int((self.target_health - self.current_health) / self.health_ratio)
-            transition_color = (255,255,0)
-
-        health_bar_width = int(self.current_health / self.health_ratio)
-        health_bar = pygame.Rect(screen_width/2 -20,screen_height/2 +10,health_bar_width,6)
-        transition_bar = pygame.Rect(health_bar.right,screen_height/2 +10,transition_width,6)
-		
-        pygame.draw.rect(screen,(255,0,0),health_bar)
-        pygame.draw.rect(screen,transition_color,transition_bar)	
-        pygame.draw.rect(screen,(0, 0, 0),(screen_width/2 -20,screen_height/2 +10,self.health_bar_length,6),1)
-
-        # 방향지정
-    def input(self):         
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_UP]:   
-            self.direction.y = -1
-        elif keys[pygame.K_DOWN]:
-            self.direction.y = 1
-        else:
-            self.direction.y = 0
-
-        if keys[pygame.K_RIGHT]:
-            self.direction.x = 1
-        elif keys[pygame.K_LEFT]:
-            self.direction.x = -1
-        else:
-            self.direction.x = 0
-
-    def update(self): 
-        self.input()
-        self.rect.center += self.direction * self.speed
+player = Player()
 
 
-
-# 적, Sprite 클래스를 바탕으로 만듦
+#적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
-        super(Enemy, self).__init__() # 여기까지 무시해도 됨
+        super(Enemy, self).__init__() #여기까지 무시해도 됨
 
-        self.surf = pygame.image.load("Sprite/enemy.png").convert_alpha() # 이미지 불러오기
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
+        self.surf = pygame.image.load("Sprite/enemy.png").convert_alpha() #이미지 불러오기
+        self.surf.set_colorkey((255, 255, 255), RLEACCEL) #투명한 부분 색 선택
         self.rect = self.surf.get_rect()
-
-
-def colllided():
-    # 여기에 충돌 시 hp 깎는 걸 만들자.
-    #if pygame.sprite.spritecollideany(player, enemies):
-        #player.get_damage(1)
-    pass
-
-
-# 카메라
-class CameraGroup(pygame.sprite.Group):    
-	def __init__(self):                  
-		super().__init__()
-		self.display_surface = pygame.display.get_surface()
-
-		# camera offset(offset: 거리차)
-		self.offset = pygame.math.Vector2()
-		self.half_w = self.display_surface.get_size()[0] // 2   
-		self.half_h = self.display_surface.get_size()[1] // 2   
-		
-        # 땅. 추후 구현 예정
-		#self.ground_surf = pygame.image.load('ground.png').convert_alpha() #ground 이미지를 띠우게 하는 코드
-		#self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
-
-	# 거리차를 설정한다. 
-	# 플레이어가 중앙에서 시작하기에 처음은 (0,0). 플레이어가 오른쪽으로 움직이면 오프셋이 (얼마, 0)로 변함.
-	def center_target_camera(self,target):   
-		self.offset.x = target.rect.centerx - self.half_w 
-		self.offset.y = target.rect.centery - self.half_h 
-	
-	#스프라이트들을 화면에 띄워주는 함수
-	def custom_draw(self,player):
-		self.center_target_camera(player)
-
-		# ground 
-		#ground_offset = self.ground_rect.topleft - self.offset 
-		#self.display_surface.blit(self.ground_surf,ground_offset)
-
-		# 화면에 띄우기와 카메라 이동
-		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery): #스프라이트가 겹칠 때 y가 높으면 앞에오도록 한 코드
-			offset_pos = sprite.rect.topleft - self.offset # 플레이어가 움직인 거리만큼 다른 스프라이트들에게 그 반대방향으로 가게 하는 코드
-			self.display_surface.blit(sprite.surf,offset_pos)
-
-# 적 랜덤 생성
-def add_enemy(player):
-		enemy = Enemy()
-		player_offset_x = player.rect.centerx - screen_width//2
-		player_offset_y = player.rect.centery - screen_height//2
-		coordinate = 0, 0
-		x = random.randint(-320, screen_width + 320)
-		y = random.randint(-320, screen_height + 320)
-
-		if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
-			a = x + screen_width, x - screen_width
-			b = y + screen_height, y - screen_height
-			coordinate = random.choice(a) + player_offset_x, random.choice(b) + player_offset_y
-		else: coordinate = x + player_offset_x, y + player_offset_y
-		# 좌표에 현재 플레이어의 오프셋을 더해주어 적들이 화면 밖 원래 자리에 생성되도록 수정.
-		enemy.rect.center = coordinate
-		enemies.add(enemy)
-		camera_group.add(enemy)
-		all_sprites.add(enemy)
-
-camera_group = CameraGroup()
-player = Player()
-camera_group.add(player)
-clock = pygame.time.Clock()
-
+        
 #적 추가하는 이벤트
 second = 250
 ADDENEMY = pygame.USEREVENT + 1
@@ -269,24 +47,54 @@ all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
 #적 플레이어 추적
+
 dx, dy = 0,0
 
-#실행
 running = True
+
+startTime = time.time() # 시작 시간(살아남은 시간)
+
+#게임오버 화면
+def showGameOverScreen():
+    font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
+    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
+
+    size_txt_gameover_width = txt_game_over.get_rect().size[0]
+    size_txt_gameover_height = txt_game_over.get_rect().size[1]
+    x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
+    y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
+    screen.fill(WHITE)
+    pygame.time.wait(500)
+    screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
+    screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
+
+
 while running:
-    clock.tick(60)
+
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             running = False
+            print(a) #살아남은 시간 출력
 
-        #적 랜덤 생성
         elif event.type == ADDENEMY:
-            add_enemy(player)
+            enemy = Enemy()
+            #적 랜덤 생성
+            coordinate = 0, 0
+            x = random.randint(-320, screen_width + 320)
+            y = random.randint(-320, screen_height + 320)
+            if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
+                a = x + screen_width, x - screen_width
+                b = y + screen_height, y - screen_height
+                coordinate = random.choice(a), random.choice(b)
+
+            enemy.rect.center = coordinate
+            enemies.add(enemy)
+            all_sprites.add(enemy)
 
     #플레이어 위치 업데이트용
     px = player.rect.x
     py = player.rect.y
-
     for enemy in enemies:
         #플레이어와 적 사이의 direction vector (dx, dy) 찾기
         dx, dy = px - enemy.rect.x, py - enemy.rect.y
@@ -295,51 +103,38 @@ while running:
             dx, dy = dx / dist, dy / dist  # Normalize.
     
         # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
-        enemy.rect.x += round(dx * 2)
-        enemy.rect.y += round(dy * 2)
+        enemy.rect.x += dx * 1
+        enemy.rect.y += dy * 1
 
-    #화면표시
     screen.fill(WHITE)
 
+    skill_
+
     #적과 플레이어 화면에 표시
-    camera_group.update()
-    camera_group.custom_draw(player)
+    for entity in all_sprites:
+        screen.blit(entity.surf, entity.rect)
     
     enemies.update()
-    player.advanced_health()
-    player.draw_exp()
     
-    while mmm:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                mmm = False
-        if main_menu:
-            menu_command = draw_menu()
-            if menu_command != -1:
-                main_menu = False
-        else:
-            main_menu = draw_game()
-            if menu_command > 0:
-                text = font.render(f'Button {menu_command} pressed!', True, 'black')
-                screen.blit(text, (150, 100))
-                mmm = False
-        pygame.display.update()
+    #살아남은 시간
+    font = pygame.font.SysFont(None, 32)
+    a = str(int(time.time() - startTime))
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
+    print(a)
 
+    gamepoint = int(a)
 
-    if main_menu:
-        menu_command = draw_menu()
-        if menu_command != -1:
-            main_menu = False
-    else:
-        main_menu = draw_game()
-        if menu_command > 0:
-            text = font.render(f'Button {menu_command} pressed!', True, 'black')
-            screen.blit(text, (150, 100))
-
-
+    #게임오버 화면에 표시(상황가정-살아남은 시간이 10을 넘어서면 게임오버 뜸)
+    if gamepoint>10:
+        running = False
+        gamepoint = font.render(a, 1, (0,0,0))
+        showGameOverScreen()
+       
     pygame.display.update()
-    whole_ticks += 1
 
 
+pygame.time.delay(3000) #게임 종료 전 딜레이
 pygame.quit()
-
