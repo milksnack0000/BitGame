@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
+import time
 
 pygame.init() # 초기화
 
@@ -114,9 +115,11 @@ class Player(pygame.sprite.Sprite):
         
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Enemy, self).__init__() # 여기까지 무시해도 됨
-
+    def __init__(self, width, height):
+        super(Enemy, self).__init__(width, height) # 여기까지 무시해도 됨
+        self.width = width
+        self.height = height
+        self.collider = [width / 2.5, height / 1.5]
         self.surf = pygame.image.load("enemy.png").convert_alpha() # 이미지 불러오기
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
         self.rect = self.surf.get_rect()
@@ -135,12 +138,20 @@ class Enemy(pygame.sprite.Sprite):
                 pygame.display.update()
       # Activates upon either of the two expressions being true
         if hits and player.attacking == True:
-            self.get_damage(10)
+            self.get_damage(5)
             player.experiance += 1   # Release expeiriance
  
       # If collision has occured and player not attacking, call "hit" function            
         elif hits and player.attacking == False:
             player.player_hit()
+    def check_collisions(obj1, obj2):
+        x1, y1 = obj1.get_center()
+        x2, y2 = obj2.get_center()
+        w1, h1 = obj1.collider[0] / 2, obj1.collider[1] / 2
+        w2, h2 = obj2.collider[0] / 2, obj2.collider[1] / 2
+        if x1 + w1 > x2 - w2 and x1 - w1 < x2 + w2:
+            return y1 + h1 > y2 - h2 and y1 - h1 < y2 + h2
+        return False
 
 def collided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
@@ -225,12 +236,28 @@ hit_cooldown = pygame.USEREVENT + 2
 
 #실행
 running = True
+startTime = time.time() # 시작 시간(살아남은 시간)
+
+#게임오버 화면
+def showGameOverScreen():
+    font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
+    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
+
+    size_txt_gameover_width = txt_game_over.get_rect().size[0]
+    size_txt_gameover_height = txt_game_over.get_rect().size[1]
+    x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
+    y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
+    screen.fill(WHITE)
+    pygame.time.wait(500)
+    screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
+    screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
 while running:
     for event in pygame.event.get():
         if event.type == hit_cooldown:
             player.cooldown = False
         if event.type == pygame.QUIT:
             running = False
+            print(a)
 
         #적 랜덤 생성
         elif event.type == ADDENEMY:
@@ -262,9 +289,27 @@ while running:
     
     enemies.update()
     player.advanced_health()
+    #살아남은 시간
+    font = pygame.font.SysFont(None, 32)
+    a = str(int(time.time() - startTime))
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
+    print(a)
 
+    gamepoint = int(a)
+
+    pressed = pygame.key.get_pressed()
+
+    #게임오버 화면에 표시(스페이스바 누르면)
+    if player.target_health == 0 :
+        running = False
+        gamepoint = font.render(a, 1, (0,0,0))
+        showGameOverScreen()
     pygame.display.update()
     print(player.rect.center)
     clock.tick(60)
 
+pygame.time.delay(3000)
 pygame.quit()
