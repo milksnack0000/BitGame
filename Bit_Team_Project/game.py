@@ -1,9 +1,11 @@
+import sys
 import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
 
 pygame.init() # 초기화
+main_font = pygame.font.SysFont("cambria", 50)
 
 # 화면 설정
 screen = pygame.display.set_mode((0,0), FULLSCREEN)
@@ -11,60 +13,31 @@ screen_width = int(screen.get_width())
 screen_height = int(screen.get_height())
 WHITE = (255, 255, 255)
 pygame.display.set_caption("BIT_GAME")
+#menu 버튼
+class Button():
+	def __init__(self, image, x_pos, y_pos, text_input):
+		self.image = image
+		self.x_pos = x_pos
+		self.y_pos = y_pos
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_input = text_input
+		self.text = main_font.render(self.text_input, True, "white")
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
 
-main_menu = False
-font = pygame.font.Font('freesansbold.ttf', 24)
-menu_command = 0
+	def update(self):
+		screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
 
-class Button:
-    def __init__(self, txt, pos):
-        self.text = txt
-        self.pos = pos
-        self.button = pygame.rect.Rect((self.pos[0], self.pos[1]), (260, 40))
+	def changeColor(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = main_font.render(self.text_input, True, "green")
+		else:
+			self.text = main_font.render(self.text_input, True, "black")
 
-    def draw(self):
-        pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
-        pygame.draw.rect(screen, 'dark gray', [self.pos[0], self.pos[1], 260, 40], 5, 5)
-        text2 = font.render(self.text, True, 'black')
-        screen.blit(text2, (self.pos[0] + 15, self.pos[1] + 7))
+button_surface = pygame.image.load("paper.png")
+button_surface = pygame.transform.scale(button_surface, (200, 150))
 
-    def check_clicked(self):
-        if self.button.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
-            return True
-        else:
-            return False
-
-def draw_menu():
-    command = -1
-   # pygame.draw.rect(screen, 'black', [100, 100, 300, 300])
-    #pygame.draw.rect(screen, 'green', [100, 100, 300, 300], 5)
-    #pygame.draw.rect(screen, 'white', [120, 120, 260, 40], 0, 5)
-    #pygame.draw.rect(screen, 'gray', [620, 120, 260, 40], 5, 5)
-    # menu 탈출 버튼
-    menu = Button('Exit Menu', (620, 350))
-    menu.draw()
-    button1 = Button('Button 1', (620, 180))
-    button1.draw()
-    button2 = Button('Button 2', (620, 240))
-    button2.draw()
-    button3 = Button('Button 3', (620, 300))
-    button3.draw()
-    if menu.check_clicked():
-        command = 0
-    if button1.check_clicked():
-        command = 1
-    if button2.check_clicked():
-        command = 2
-    if button3.check_clicked():
-        command = 3
-    return command
-
-
-def draw_game():
-    menu_btn = Button('Main Menu', (950, 650))
-    menu_btn.draw()
-    menu = menu_btn.check_clicked()
-    return menu
+button = Button(button_surface, 980, 600, "Button")#menu button 위치
 
 
 # 플레이어, Sprite 클래스를 바탕으로 만듦
@@ -272,7 +245,10 @@ while running:
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            running = False	
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            button.checkForInput(pygame.mouse.get_pos())
+
 
         #적 랜덤 생성
         elif event.type == ADDENEMY:
@@ -295,7 +271,8 @@ while running:
 
     #화면표시
     screen.fill(WHITE)
-
+    button.update()
+    button.changeColor(pygame.mouse.get_pos())
     #적과 플레이어 화면에 표시
     camera_group.update()
     camera_group.custom_draw(player)
@@ -304,18 +281,8 @@ while running:
     player.advanced_health()
     player.draw_exp()
 
-    if main_menu:
-        menu_command = draw_menu()
-        if menu_command != -1:
-            main_menu = False
-    else:
-        main_menu = draw_game()
-        if menu_command > 0:
-            text = font.render(f'Button {menu_command} pressed!', True, 'black')
-            screen.blit(text, (650, 150))
-
-
     pygame.display.update()
     clock.tick(60)
 
 pygame.quit()
+sys.exit()
