@@ -83,16 +83,7 @@ def startscreen():
 intro = True #게임시작화면
 
 while running:
-
-    if intro:
-        startscreen()
-
-        pressed=pygame.key.get_pressed()
-        if pressed[pygame.K_a]:
-            intro = False
-
-    pygame.display.update()
-
+    
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
@@ -155,9 +146,13 @@ while running:
         running = False
         gamepoint = font.render(a, 1, (0,0,0))
         showGameOverScreen()
-       
-    pygame.display.update()
 
+    #게임시작 화면 표시(a누르면 넘어감)
+    if intro:
+        startscreen()
+        if pressed[pygame.K_a]:
+            intro = False
+    pygame.display.update()
 
 pygame.time.delay(3000) #게임 종료 전 딜레이
 pygame.quit()
