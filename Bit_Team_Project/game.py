@@ -82,16 +82,25 @@ def startscreen():
 
 intro = True #게임시작화면
 
+if intro:
+    startscreen()
+
+    pressed=pygame.key.get_pressed()
+    if pressed[pygame.K_a]:
+        intro = False
+
+    pygame.display.update()
+
 while running:
 
-    while intro:
+    if intro:
         startscreen()
 
         pressed=pygame.key.get_pressed()
-        if pressed[pygame.K_SPACE]:
+        if pressed[pygame.K_a]:
             intro = False
-        
-        pygame.display.update()
+
+    pygame.display.update()
 
     for event in pygame.event.get():
 
