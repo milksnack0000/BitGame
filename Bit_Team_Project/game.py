@@ -68,8 +68,30 @@ def showGameOverScreen():
     screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
     screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
 
+#게임시작 화면
+def startscreen():
+    font_gamestart = pygame.font.SysFont(None, 80) # 게임시작 폰트
+    txt_game_start = font_gamestart.render('Game Start', True, (255,0,0)) #게임시작 글자
+
+    size_txt_gamestart_width = txt_game_start.get_rect().size[0]
+    size_txt_gamestart_height = txt_game_start.get_rect().size[1]
+    x_pos_text = screen_width/2-size_txt_gamestart_width/2 #게임 시작 글자 위치
+    y_pos_text = screen_height/2-size_txt_gamestart_height/2 #게임 시작 글자 위치
+    screen.fill(WHITE)
+    screen.blit(txt_game_start, (x_pos_text,y_pos_text))
+
+intro = True #게임시작화면
 
 while running:
+
+    while intro:
+        startscreen()
+
+        pressed=pygame.key.get_pressed()
+        if pressed[pygame.K_SPACE]:
+            intro = False
+        
+        pygame.display.update()
 
     for event in pygame.event.get():
 
@@ -78,6 +100,7 @@ while running:
             print(a) #살아남은 시간 출력
 
         elif event.type == ADDENEMY:
+
             enemy = Enemy()
             #적 랜덤 생성
             coordinate = 0, 0
