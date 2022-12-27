@@ -82,15 +82,6 @@ def startscreen():
 
 intro = True #게임시작화면
 
-if intro:
-    startscreen()
-
-    pressed=pygame.key.get_pressed()
-    if pressed[pygame.K_a]:
-        intro = False
-
-    pygame.display.update()
-
 while running:
 
     if intro:
