@@ -5,7 +5,7 @@ import math # 적 플레이어 추적
 import time
 
 pygame.init() # 초기화
-
+contadordecolisiones = 1
 # 화면 설정
 screen = pygame.display.set_mode((0,0), FULLSCREEN)
 screen_width = int(screen.get_width())
@@ -115,22 +115,38 @@ class Player(pygame.sprite.Sprite):
         
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, width, height):
-        super(Enemy, self).__init__(width, height) # 여기까지 무시해도 됨
-        self.width = width
-        self.height = height
-        self.collider = [width / 2.5, height / 1.5]
+    X_change = 3
+    Y_change = 40 
+    def __init__(self):
+        super(Enemy, self).__init__() # 여기까지 무시해도 됨
+
         self.surf = pygame.image.load("enemy.png").convert_alpha() # 이미지 불러오기
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
-        self.rect = self.surf.get_rect()
+        num_in_row = 10 # How many should display horizontally until we wrap to another line
+        column_spacing = 32 # pixels from the start of one enemy to another horizontally
+        row_spacing = 32 # pixels from the start of one enemy to another vertically
+        self.X = (id % num_in_row) * column_spacing
+        self.Y = (id // num_in_row) * row_spacing
+        self.rect = self.surf.get_rect(center = (self.X, self.Y))
         self.health = 200
     def get_damage(self,amount):
         if self.health > 0:
             self.health -= amount
         if self.health < 0:
             self.health = 0
+    
 # 경험치
-    def update(self):
+    def update(self, other_enemies: list(), delta: float):
+        net_force = pygame.math.Vector2()
+        maximum_force_distance = (self.image.get_width() / 2) * (2 ** 0.5) # Assuming the width and height are the same this will be equal to the distance from the center to the corner of the image
+        for enemy in other_enemies:
+            offset = enemy.position - self.position # vector math, assuming each of these are instances of pygame.math.Vector2
+            if offset.magnitude() <= maximum_force_distance:
+                net_force += offset * (maximum_force_distance - offset.magnitude()) # the closer offset.magnitude is to maximum_force_distance, the less effect it should have on net_force.  
+
+    # delta is equal to how long since the last frame in seconds, can be calculated with an instance of pygame.time.Clock's tick method and dividing the return value by 1000 (since clock.tick returns time since the last frame in milliseconds)
+        self.position += net_force * delta
+        self.rect.center = self.position
       # Checks for collision with the Player
         hits = pygame.sprite.spritecollide(self, Playergroup, False)
         if self.health <= 0:
@@ -144,14 +160,6 @@ class Enemy(pygame.sprite.Sprite):
       # If collision has occured and player not attacking, call "hit" function            
         elif hits and player.attacking == False:
             player.player_hit()
-    def check_collisions(obj1, obj2):
-        x1, y1 = obj1.get_center()
-        x2, y2 = obj2.get_center()
-        w1, h1 = obj1.collider[0] / 2, obj1.collider[1] / 2
-        w2, h2 = obj2.collider[0] / 2, obj2.collider[1] / 2
-        if x1 + w1 > x2 - w2 and x1 - w1 < x2 + w2:
-            return y1 + h1 > y2 - h2 and y1 - h1 < y2 + h2
-        return False
 
 def collided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
