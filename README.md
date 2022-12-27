@@ -2,8 +2,14 @@ import pygame
 from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
+import time
 
 pygame.init() # 초기화
+width , height = 800 , 600
+velocity = 7
+velocitynalguis = velocity - 2
+Enemyes =  []
+FPS = 60
 
 # 화면 설정
 screen = pygame.display.set_mode((0,0), FULLSCREEN)
@@ -111,7 +117,7 @@ class Player(pygame.sprite.Sprite):
             if self.target_health <= 0:
                 self.kill()
                 pygame.display.update()
-        
+
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -121,6 +127,21 @@ class Enemy(pygame.sprite.Sprite):
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
         self.rect = self.surf.get_rect()
         self.health = 200
+        self.contadordecolisiones = 1
+        self.enerandom = random.randint(0,4)
+        self.velocity = velocitynalguis
+
+        if self.enerandom == 0:
+             self.rect.center = (random.randrange(-130,-30),random.randrange(-130,height+130))
+        if self.enerandom == 1:
+             self.rect.center = (random.randrange(-130,width+130),random.randrange(-130,-30))
+        if self.enerandom == 2:
+             self.rect.center = (random.randrange(width+30,width+130),random.randrange(-130,height+130))
+        if self.enerandom == 3:
+            self.rect.center = (random.randrange(-130,width+130),random.randrange(height+30,height+130))
+
+
+        
     def get_damage(self,amount):
         if self.health > 0:
             self.health -= amount
@@ -128,20 +149,48 @@ class Enemy(pygame.sprite.Sprite):
             self.health = 0
 # 경험치
     def update(self):
+
+        self.pely = enemy.rect.y
+        self.pelx = enemy.rect.x
+        self.perx = self.rect.x
+        self.pery = self.rect.y
+
+        self.dist = math.sqrt(((self.pely-self.pery)**2) + ((self.pelx-self.perx)**2))/velocitynalguis
+
+        self.angle = math.atan2(self.pely-self.pery,self.pelx-self.perx)
+
+        self.speedx = 0
+        self.speedy = 0
+        self.speedx = math.cos(self.angle) 
+        self.speedy = math.sin(self.angle) 
+        
+        old_rect = self.rect.copy()
+        if self.dist>=1:
+            self.rect.x += velocitynalguis * self.speedx
+            self.rect.y += velocitynalguis * self.speedy
+
       # Checks for collision with the Player
-        hits = pygame.sprite.spritecollide(self, Playergroup, False)
+        hits = pygame.sprite.spritecollide(self, Playergroup, False, pygame.sprite.collide_circle)
+        if len(hit) > 1: # at last 1, because the ball hits itself
+            if random.randrange(2) == 0:
+                self.rect.x = old_rect.x
+            else:
+                self.rect.y = old_rect.y
+            hit = pygame.sprite.spritecollide(self, Enemy_group, False, pygame.sprite.collide_circle)
+            if len(hit) > 1:
+                    self.rect = old_rect
         if self.health <= 0:
                 self.kill()
                 pygame.display.update()
       # Activates upon either of the two expressions being true
         if hits and player.attacking == True:
-            self.get_damage(10)
+            self.get_damage(5)
             player.experiance += 1   # Release expeiriance
  
       # If collision has occured and player not attacking, call "hit" function            
         elif hits and player.attacking == False:
             player.player_hit()
-
+Enemy_group = pygame.sprite.Group()
 def collided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
     if pygame.sprite.spritecollideany(player, enemies):
@@ -225,12 +274,57 @@ hit_cooldown = pygame.USEREVENT + 2
 
 #실행
 running = True
+startTime = time.time() # 시작 시간(살아남은 시간)
+
+#게임오버 화면
+def showGameOverScreen():
+    font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
+    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
+
+    size_txt_gameover_width = txt_game_over.get_rect().size[0]
+    size_txt_gameover_height = txt_game_over.get_rect().size[1]
+    x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
+    y_pos_text = screen_height/2-size_txt_gameover_height/2 #게임 오버 글자 위치
+    screen.fill(WHITE)
+    pygame.time.wait(500)
+    screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
+    screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
+
+requested_enemies = 1
+
+while not running:
+    clock.tick(FPS)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running=True
+    
+    if len(Enemy_group)<1:
+        Enemy=Enemy()
+        Enemy_group.add(Enemy)
+        all_sprites.add(Enemy)
+
+    hit = pygame.sprite.spritecollide(player, Enemy_group, True, pygame.sprite.collide_circle)
+    if hit: 
+        requested_balls = min(25, requested_balls+1)
+    if len(Enemy_group) < requested_balls:
+        Enemy = Enemy()
+        if not pygame.sprite.spritecollide(Enemy, Enemy_group, True, pygame.sprite.collide_circle):
+            all_sprites.add(Enemy)
+            Enemy_group.add(Enemy)
+            Enemyes.append(Enemy)
+        
+    dist=1
+                                        
+    if len(Enemyes)> len(Enemy_group):
+        del Enemyes [0]
+
 while running:
     for event in pygame.event.get():
         if event.type == hit_cooldown:
             player.cooldown = False
         if event.type == pygame.QUIT:
             running = False
+            print(a)
 
         #적 랜덤 생성
         elif event.type == ADDENEMY:
@@ -262,9 +356,27 @@ while running:
     
     enemies.update()
     player.advanced_health()
+    #살아남은 시간
+    font = pygame.font.SysFont(None, 32)
+    a = str(int(time.time() - startTime))
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
+    print(a)
 
+    gamepoint = int(a)
+
+    pressed = pygame.key.get_pressed()
+
+    #게임오버 화면에 표시(스페이스바 누르면)
+    if player.target_health == 0 :
+        running = False
+        gamepoint = font.render(a, 1, (0,0,0))
+        showGameOverScreen()
     pygame.display.update()
     print(player.rect.center)
     clock.tick(60)
 
+pygame.time.delay(3000)
 pygame.quit()
