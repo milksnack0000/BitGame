@@ -1,0 +1,157 @@
+import pygame, random, math
+pygame.init()
+
+width , height = 800 , 600
+black = (0,0,0)
+white=(255,255,255)
+FPS = 60     
+velocity = 7
+velocitynalguis = velocity - 2
+collisioncounter = 1
+Enemyes =  []
+
+pantalla=pygame.display.set_mode((width,height))
+pygame.display.set_caption("un jueguito")
+clock=pygame.time.Clock()
+
+class Ball(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("ball.png").convert()
+        self.image = pygame.transform.scale(self.image, (30, 30))
+        self.image.set_colorkey(black)
+        self.rect = self.image.get_rect()
+        self.rect.center = (width/2,height/2) 
+        self.speed = 0
+
+    def update(self):
+        self.speedx = 0
+        self.speedy = 0
+        tecla  = pygame.key.get_pressed()
+        
+        if tecla[pygame.K_LEFT]:
+            self.speedx = -velocity
+        
+        if tecla[pygame.K_RIGHT]:
+            self.speedx = velocity      
+
+        if tecla[pygame.K_UP]:
+            self.speedy = -velocity
+
+        if tecla[pygame.K_DOWN]:
+            self.speedy = velocity
+
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+        if self.rect.right > width:
+            self.rect.right = width
+
+        if self.rect.bottom > height:
+            self.rect.bottom = height
+
+        if self.rect.left < 0:
+            self.rect.left = 0
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+
+ball = Ball()
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self,):
+        super().__init__()
+        self.image = pygame.image.load('nalguis.png').convert()
+        self.image = pygame.transform.scale(self.image, (30, 30))
+        self.image.set_colorkey(black)
+        self.rect = self.image.get_rect()
+        self.velocity = velocitynalguis
+        self.radius = self.rect.width/2
+        self.center = self.rect.center
+        self.collisioncounter = 1
+        self.enerandom = random.randint(0,4)
+
+        if self.enerandom == 0:
+             self.rect.center = (random.randrange(-130,-30),random.randrange(-130,height+130))
+        if self.enerandom == 1:
+             self.rect.center = (random.randrange(-130,width+130),random.randrange(-130,-30))
+        if self.enerandom == 2:
+             self.rect.center = (random.randrange(width+30,width+130),random.randrange(-130,height+130))
+        if self.enerandom == 3:
+            self.rect.center = (random.randrange(-130,width+130),random.randrange(height+30,height+130))
+
+    def update(self):
+        
+        self.pely = ball.rect.y
+        self.pelx = ball.rect.x
+        self.perx = self.rect.x
+        self.pery = self.rect.y
+
+        self.dist = math.sqrt(((self.pely-self.pery)**2) + ((self.pelx-self.perx)**2))/velocitynalguis
+
+        self.angle = math.atan2(self.pely-self.pery,self.pelx-self.perx)
+
+        self.speedx = 0
+        self.speedy = 0
+        self.speedx = math.cos(self.angle) 
+        self.speedy = math.sin(self.angle) 
+        
+        old_rect = self.rect.copy()
+        if self.dist>=1:
+            self.rect.x += velocitynalguis * self.speedx
+            self.rect.y += velocitynalguis * self.speedy
+
+        hit = pygame.sprite.spritecollide(self, Enemy_group, False, pygame.sprite.collide_circle)
+        if len(hit) > 1: # at last 1, because the ball hits itself
+            if random.randrange(2) == 0:
+                self.rect.x = old_rect.x
+            else:
+                self.rect.y = old_rect.y
+            hit = pygame.sprite.spritecollide(self, Enemy_group, False, pygame.sprite.collide_circle)
+            if len(hit) > 1:
+                    self.rect = old_rect
+
+        
+
+all_sprites = pygame.sprite.Group()
+Enemy_group = pygame.sprite.Group()
+all_sprites.add(ball)
+
+running=False
+
+requested_balls = 1
+
+while not running:
+    clock.tick(FPS)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running=True
+    
+    if len(Enemy_group)<1:
+        Enemy=Enemy()
+        Enemy_group.add(Enemy)
+        all_sprites.add(Enemy)
+
+    hit = pygame.sprite.spritecollide(ball, Enemy_group, True, pygame.sprite.collide_circle)
+    if hit: 
+        requested_balls = min(25, requested_balls+1)
+    if len(Enemy_group) < requested_balls:
+        Enemy = Enemy()
+        if not pygame.sprite.spritecollide(Enemy, Enemy_group, True, pygame.sprite.collide_circle):
+            all_sprites.add(Enemy)
+            Enemy_group.add(Enemy)
+            Enemyes.append(Enemy)
+        
+    dist=1
+                                        
+    if len(Enemyes)> len(Enemy_group):
+        del Enemyes [0]       
+    
+    all_sprites.update()
+    pantalla .fill(black)
+    all_sprites.draw(pantalla)
+    
+    pygame.display.flip()
+    
+pygame.quit()
+quit()
