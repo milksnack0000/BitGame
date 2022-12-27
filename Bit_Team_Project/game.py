@@ -83,6 +83,8 @@ def startscreen():
 intro = True #게임시작화면
 
 while running:
+
+    pressed = pygame.key.get_pressed()
     
     for event in pygame.event.get():
 
@@ -91,20 +93,20 @@ while running:
             print(a) #살아남은 시간 출력
 
         elif event.type == ADDENEMY:
+            if not intro:
+                enemy = Enemy()
+                #적 랜덤 생성
+                coordinate = 0, 0
+                x = random.randint(-320, screen_width + 320)
+                y = random.randint(-320, screen_height + 320)
+                if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
+                    a = x + screen_width, x - screen_width
+                    b = y + screen_height, y - screen_height
+                    coordinate = random.choice(a), random.choice(b)
 
-            enemy = Enemy()
-            #적 랜덤 생성
-            coordinate = 0, 0
-            x = random.randint(-320, screen_width + 320)
-            y = random.randint(-320, screen_height + 320)
-            if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
-                a = x + screen_width, x - screen_width
-                b = y + screen_height, y - screen_height
-                coordinate = random.choice(a), random.choice(b)
-
-            enemy.rect.center = coordinate
-            enemies.add(enemy)
-            all_sprites.add(enemy)
+                enemy.rect.center = coordinate
+                enemies.add(enemy)
+                all_sprites.add(enemy)
 
     #플레이어 위치 업데이트용
     px = player.rect.x
@@ -121,12 +123,12 @@ while running:
         enemy.rect.y += dy * 1
 
     screen.fill(WHITE)
-
-    #적과 플레이어 화면에 표시
-    for entity in all_sprites:
-        screen.blit(entity.surf, entity.rect)
-    
-    enemies.update()
+    if not intro:
+        #적과 플레이어 화면에 표시
+        for entity in all_sprites:
+            screen.blit(entity.surf, entity.rect)
+        
+        enemies.update()
     
     #살아남은 시간
     font = pygame.font.SysFont(None, 32)
@@ -138,8 +140,6 @@ while running:
     print(a)
 
     gamepoint = int(a)
-
-    pressed = pygame.key.get_pressed()
 
     #게임오버 화면에 표시(스페이스바 누르면)
     if pressed[pygame.K_SPACE] :
