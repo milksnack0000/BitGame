@@ -26,7 +26,6 @@ class Player(pygame.sprite.Sprite):
 
 player = Player()
 
-
 #적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -46,13 +45,9 @@ enemies = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
-#적 플레이어 추적
-
-dx, dy = 0,0
+dx, dy = 0,0 #적 플레이어 추적
 
 running = True
-
-startTime = time.time() # 시작 시간(살아남은 시간)
 
 #게임오버 화면
 def showGameOverScreen():
@@ -66,12 +61,13 @@ def showGameOverScreen():
     screen.fill(WHITE)
     pygame.time.wait(500)
     screen.blit(txt_game_over, (x_pos_text,y_pos_text-50))
-    screen.blit(gamepoint, (x_pos_text,y_pos_text+50))
+    centerx = int(screen.get_rect().midtop[0])
+    screen.blit(gamepoint, (centerx,y_pos_text+50))
 
 #게임시작 화면
 def startscreen():
     font_gamestart = pygame.font.SysFont(None, 80) # 게임시작 폰트
-    txt_game_start = font_gamestart.render('Game Start', True, (255,0,0)) #게임시작 글자
+    txt_game_start = font_gamestart.render('Game Start', True, (0,0,0)) #게임시작 글자
 
     size_txt_gamestart_width = txt_game_start.get_rect().size[0]
     size_txt_gamestart_height = txt_game_start.get_rect().size[1]
@@ -107,51 +103,52 @@ while running:
                 enemy.rect.center = coordinate
                 enemies.add(enemy)
                 all_sprites.add(enemy)
-
-    #플레이어 위치 업데이트용
-    px = player.rect.x
-    py = player.rect.y
-    for enemy in enemies:
-        #플레이어와 적 사이의 direction vector (dx, dy) 찾기
-        dx, dy = px - enemy.rect.x, py - enemy.rect.y
-        dist = math.hypot(dx, dy)
-        if dist != 0:
-            dx, dy = dx / dist, dy / dist  # Normalize.
-    
-        # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
-        enemy.rect.x += dx * 1
-        enemy.rect.y += dy * 1
-
-    screen.fill(WHITE)
     if not intro:
+        #플레이어 위치 업데이트용
+        px = player.rect.x
+        py = player.rect.y
+        for enemy in enemies:
+            #플레이어와 적 사이의 direction vector (dx, dy) 찾기
+            dx, dy = px - enemy.rect.x, py - enemy.rect.y
+            dist = math.hypot(dx, dy)
+            if dist != 0:
+                dx, dy = dx / dist, dy / dist  # Normalize.
+        
+            # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
+            enemy.rect.x += dx * 1
+            enemy.rect.y += dy * 1
+
+        screen.fill(WHITE)
+    
         #적과 플레이어 화면에 표시
         for entity in all_sprites:
             screen.blit(entity.surf, entity.rect)
         
         enemies.update()
     
-    #살아남은 시간
-    font = pygame.font.SysFont(None, 32)
-    a = str(int(time.time() - startTime))
-    counting_text = font.render(a, 1, (0,0,0))
-    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
-    counting_rect = counting_text.get_rect(center = center0)
-    screen.blit(counting_text, counting_rect)
-    print(a)
+        #살아남은 시간
+        font = pygame.font.SysFont(None, 32)
+        a = str(int(time.time() - startTime))
+        counting_text = font.render(a, 1, (0,0,0))
+        center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+        counting_rect = counting_text.get_rect(center = center0)
+        screen.blit(counting_text, counting_rect)
+        print(a)
 
-    gamepoint = int(a)
+        gamepoint = int(a)
 
-    #게임오버 화면에 표시(스페이스바 누르면)
-    if pressed[pygame.K_SPACE] :
-        running = False
-        gamepoint = font.render(a, 1, (0,0,0))
-        showGameOverScreen()
+        #게임오버 화면에 표시(스페이스바 누르면)
+        if pressed[pygame.K_SPACE] :
+            running = False
+            gamepoint = font.render(a, 1, (0,0,0))
+            showGameOverScreen()
 
     #게임시작 화면 표시(a누르면 넘어감)
     if intro:
         startscreen()
         if pressed[pygame.K_a]:
             intro = False
+            startTime = time.time() # 시작 시간(살아남은 시간)
     pygame.display.update()
 
 pygame.time.delay(3000) #게임 종료 전 딜레이
