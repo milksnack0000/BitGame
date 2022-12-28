@@ -4,8 +4,9 @@ import random # 적 랜덤 생성
 import math # 적 플레이어 추적
 from effect import *
 import random
-
+from random import randint
 pygame.init() # 초기화
+
 #눈 효과
 snow = []
 for i in range(50):
@@ -22,6 +23,13 @@ main_menu = False
 menu_command = 0
 mmm = True
 whole_ticks = 0
+
+#크리스마스 트리
+class Tree(pygame.sprite.Sprite):
+	def __init__(self,pos,group):
+		super().__init__(group)
+		self.surf = pygame.image.load('크리스마스 트리.png').convert_alpha()
+		self.rect = self.surf.get_rect(topleft = pos)
 
 
 pygame.display.set_caption("BIT_GAME")
@@ -398,6 +406,11 @@ all_sprites.add(player)
 
 #적 플레이어 추적
 dx, dy = 0,0
+#크리스마스 트리 생성/배치
+for i in range(2500):
+	random_x = randint(-9000,9000)
+	random_y = randint(-9000,9000)
+	Tree((random_x,random_y),camera_group)
 
 #실행
 running = True
@@ -436,7 +449,7 @@ while running:
     #적과 플레이어 화면에 표시
     camera_group.update()
     camera_group.custom_draw(player)
-    
+    #눈 효과 생성
     for ice in range(len(snow)):
         pygame.draw.circle(screen, 'sky blue', snow[ice],3)
         snow[ice][1]+=1  
