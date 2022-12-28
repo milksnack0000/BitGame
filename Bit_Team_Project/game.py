@@ -52,7 +52,7 @@ running = True
 #게임오버 화면
 def showGameOverScreen():
     font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
-    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자a
+    txt_game_over = font_gameover.render('Game Over', True, (255,0,0)) #게임오버 글자
     size_txt_gameover_width = txt_game_over.get_rect().size[0]
     size_txt_gameover_height = txt_game_over.get_rect().size[1]
     x_pos_text = screen_width/2-size_txt_gameover_width/2 #게임 오버 글자 위치
