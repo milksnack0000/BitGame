@@ -382,7 +382,7 @@ def colllided():
 
 
 group0 = pygame.sprite.Group()
-hit_cooldown = 600
+hit_cooldown = 60
 
 # 카메라
 class CameraGroup(pygame.sprite.Group):    
@@ -516,6 +516,8 @@ class Skill(pygame.sprite.Sprite):
             i.get_damage(self.skill_damage)
     
     def run_floor_deal(self):
+        self.rect = self.surf.get_rect()
+        self.rect.center = self.set_coord
         for i in pygame.sprite.spritecollide(self, enemies, False):
             i.get_damage(self.floor_damage)
 
@@ -535,10 +537,8 @@ class Skill(pygame.sprite.Sprite):
             self.count_tick += 1
         elif self.floor_skill == True and self.effect_time <= self.count_tick and self.count_tick < (self.floor_time + self.effect_time):
             self.surf = pygame.image.load(self.floor_skill_effect).convert_alpha()
-            self.surf = pygame.transform.scale(self.surf, (160, 160))
+            self.surf = pygame.transform.scale(self.surf, (240, 240))
             self.surf.set_colorkey((255, 255, 255), RLEACCEL)
-            self.rect = self.surf.get_rect()
-            self.rect.center = self.set_coord
             if (self.count_tick - self.effect_time) % self.floor_time == 0:
                 self.run_floor_deal()
             self.count_tick += 1
@@ -627,7 +627,7 @@ class Skill(pygame.sprite.Sprite):
 test_skill = Skill(test_skill_icon, skill_throwing_test, skill_txt)
 All_Skills.add(test_skill)
 test_skill.cool_time = 300 # 스킬 쿨타임 60=1초
-test_skill.effect_time = 16 # 스킬 이펙트 시간
+test_skill.effect_time = 32 # 스킬 이펙트 시간
 test_skill.skill_effect = test_skill_effect
 test_skill.skill_damage = 1000
 test_skill.chosen = True
@@ -714,6 +714,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    while intro:
+        startscreen()
+        pressed = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                intro = False
+            if pressed[pygame.K_a]:
+                intro = False
+        pygame.display.update()
+
     #적 랜덤 생성
     if (whole_ticks % enemy_term) == 0:
         add_enemy(player)
@@ -741,16 +751,16 @@ while running:
         i.rect.y += round(dy * 2)
         if list_cd[0] > dist:
             list_cd[0] = dist
-            if i.rect.x == 0 or i.rect.y == 0:
-                list_cd[1] = i.rect.centerx + 1
-                list_cd[2] = i.rect.centery + 1
+            if i.rect.x - camera_group.offset.x == 0 or i.rect.y - camera_group.offset.y == 0:
+                list_cd[1] = i.rect.centerx - camera_group.offset.x + 1
+                list_cd[2] = i.rect.centery - camera_group.offset.y+ 1
             else:
-                list_cd[1] = i.rect.centerx
-                list_cd[2] = i.rect.centery
+                list_cd[1] = i.rect.centerx - camera_group.offset.x
+                list_cd[2] = i.rect.centery - camera_group.offset.y
 
     if whole_ticks == test_skill.selected_time + test_skill.cool_time:
-        list_cd1[0] = list_cd[1] - camera_group.offset.x
-        list_cd1[1] = list_cd[2] - camera_group.offset.y
+        list_cd1[0] = list_cd[1] 
+        list_cd1[1] = list_cd[2] 
     
     colllided()
 
@@ -774,6 +784,18 @@ while running:
 
     player.advanced_health()
     player.draw_exp()
+
+    a = str(whole_ticks//60)
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
+
+    gamepoint = int(a)
+    if player.target_health == 0 :
+        running = False
+        gamepoint = font.render(a, 1, (0,0,0))
+        showGameOverScreen()
 
     if player.charge_exp >= player.max_exp:
         player.level_up()
