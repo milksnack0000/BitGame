@@ -991,19 +991,22 @@ while running:
                 intro = False
         pygame.display.update()
     if whole_ticks > 0:
-        whole_ticks % enemy_term == 0
+        if (whole_ticks % enemy_term) == 0:
+            add_enemy(player)
     if whole_ticks > 3600:
-        whole_ticks % enemy2_term == 1
+        if (whole_ticks % enemy2_term) == 0:
+            add_enemy2(player)
     if whole_ticks > 7200:
-        whole_ticks % enemy3_term == 2
+        if (whole_ticks % enemy3_term) == 0:    
+            add_enemy3(player)
 
     #적 랜덤 생성
-    if (whole_ticks % enemy_term) == 0:
-        add_enemy(player)
-    if (whole_ticks % enemy2_term) == 1:
-        add_enemy2(player)
-    if (whole_ticks % enemy3_term) == 2:    
-        add_enemy3(player)
+    # if (whole_ticks % enemy_term) == 0:
+    #     add_enemy(player)
+    # if (whole_ticks % enemy2_term) == 1:
+    #     add_enemy2(player)
+    # if (whole_ticks % enemy3_term) == 2:    
+    #     add_enemy3(player)
 
     # 플레이어 쿨다운
     if whole_ticks >= player.present_ticks +  hit_cooldown:
