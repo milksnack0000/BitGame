@@ -333,8 +333,12 @@ class Enemy(pygame.sprite.Sprite):
 
         self.enemy_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
         self.enemy_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
+        self.enemy_hurt_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_2.png").convert_alpha(), self.scale)]
+        self.enemy_hurt_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_2.png").convert_alpha(), self.scale)]
         self.Walkcount = 0
+        self.damage_count = 0
         self.death_count = 0
+        self.damage = False
 
         # 적 스텟
         self.health = 200
@@ -345,6 +349,7 @@ class Enemy(pygame.sprite.Sprite):
             self.health -= amount
         if self.health < 0:
             self.health = 0
+        self.damage = True
 
 #거리에 따라서 적이미지 방향판단
     def input(self): 
@@ -363,7 +368,7 @@ class Enemy(pygame.sprite.Sprite):
             self.surf = pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/enemy_dead.png").convert_alpha(), self.scale)
             self.death_count += 1
             self.health += 1
-            
+
         if self.death_count >= 1:
             self.death_count += 1
             if self.death_count == 120:
@@ -376,13 +381,25 @@ class Enemy(pygame.sprite.Sprite):
                 self.Walkcount = 0
             elif self.right:
                 self.surf = self.enemy_move_right[self.Walkcount//8]
+                if self.damage == True:
+                    self.surf = self.enemy_hurt_right[self.Walkcount//8]
+                    self.damage_count += 1
                 self.Walkcount += 1
             elif self.left:
                 self.surf = self.enemy_move_left[self.Walkcount//8]
+                if self.damage == True:
+                    self.surf = self.enemy_hurt_left[self.Walkcount//8]
+                    self.damage_count += 1
                 self.Walkcount += 1
             else:
                 self.surf = self.enemy_move_left[0]
+                if self.damage == True:
+                    self.surf = self.enemy_hurt_left[0]
+                    self.damage_count += 1
                 self.Walkcount = 0
+            if self.damage_count == 30:
+                self.damage = False
+                self.damage_count = 0
 
 def colllided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
@@ -802,10 +819,18 @@ while running:
     screen.blit(counting_text, counting_rect)
 
     gamepoint = int(a)
+    game_over = True
+
     if player.target_health == 0 :
-        running = False
-        gamepoint = font.render(a, 1, (0,0,0))
-        showGameOverScreen()
+        while game_over:
+            gamepoint = font.render(a, 1, (0,0,0))
+            showGameOverScreen()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_over = False
+            running = False
+        pygame.display.update()
+
 
     if player.charge_exp >= player.max_exp:
         player.level_up()
