@@ -25,4 +25,10 @@ ice_bomb_effect = ["Skill/Bomb/bomb_effect/1.png", "Skill/Bomb/bomb_effect/2.png
 ice_bomb_icon = "Skill/Snow_bomb/ice_bomb_icon.png"
 ice_bomb_throw = "Skill/Snow_bomb/ice_bomb.png"
 ice_bomb_floor = "Skill/Snow_bomb/ice_floor.png"
-ice_bomb_txt = ['산타는 북극에 삽니다. 선물이 차가운 건 어찌보면 당연한 일이죠.', '눈 폭탄의 데미지 10% 증가', '3', '4', '5']
+ice_bomb_txt = ['산타는 북극에 삽니다. 선물이 차가운 건 어찌보면 당연한 일이죠.', '데미지 30% 증가', '범위 40% 증가', '쿨타임 20% 감소', '스킬 지속시간 50% 증가', '데미지 40% 증가', '스킬 속도 2배 증가', '범위 50% 증가', '쿨타임 30% 감소', '데미지 50% 증가', '범위 60% 증가', '.']
+
+basic_skill_effect = ["Skill/Bomb/bomb_effect/1.png", "Skill/Bomb/bomb_effect/2.png", "Skill/Bomb/bomb_effect/3.png", "Skill/Bomb/bomb_effect/4.png", "Skill/Bomb/bomb_effect/5.png", 
+"Skill/Bomb/bomb_effect/6.png", "Skill/Bomb/bomb_effect/7.png", "Skill/Bomb/bomb_effect/8.png"]
+basic_skill_icon = "Skill/Basic_skill/present_for_you.png"
+basic_skill_throw = "Skill/Basic_skill/present_for_you.png"
+basic_skill_txt = ['제작자의 이스터에그. 아니, 크리스마스 에그?', "폭발 데미지 20% 증가", "폭발 범위 30% 증가", "쿨타임 20% 감소", "폭발 데미지 50% 증가", "스킬 속도 2배 증가", "폭발 범위 50% 증가", "쿨타임 30% 감소", "폭발 데미지 100% 증가", "폭발 범위 100% 증가" '.']

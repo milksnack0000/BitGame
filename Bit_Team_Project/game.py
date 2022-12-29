@@ -127,7 +127,7 @@ class Player(pygame.sprite.Sprite):
 
 		# 플레이어 이동
         self.direction = pygame.math.Vector2()
-        self.speed = 3
+        self.speed = 5
 
         # 체력
         self.current_health = 100
@@ -145,9 +145,8 @@ class Player(pygame.sprite.Sprite):
         self.button3.changeColor()
 
         if self.button1.check_clicked():
-            self.selected_skill.sprites()[0].skill_level += 1
+            self.selected_skill.sprites()[0].skill_level_up()
             self.selected_skill.sprites()[0].selected_time = whole_ticks
-            self.selected_skill.sprites()[0].txt_update()
             self.window_closed = True
             self.mmm = False
             if self.selected_skill.sprites()[0].skill_level == 1:
@@ -155,9 +154,8 @@ class Player(pygame.sprite.Sprite):
             self.selected_skill = []
         
         if self.button2.check_clicked():
-            self.selected_skill.sprites()[1].skill_level += 1
+            self.selected_skill.sprites()[1].skill_level_up()
             self.selected_skill.sprites()[1].selected_time = whole_ticks
-            self.selected_skill.sprites()[1].txt_update()
             self.window_closed = True
             self.mmm = False
             if self.selected_skill.sprites()[1].skill_level == 1:
@@ -165,9 +163,8 @@ class Player(pygame.sprite.Sprite):
             self.selected_skill = []
 
         if self.button3.check_clicked():
-            self.selected_skill.sprites()[2].skill_level += 1
+            self.selected_skill.sprites()[2].skill_level_up()
             self.selected_skill.sprites()[2].selected_time = whole_ticks
-            self.selected_skill.sprites()[2].txt_update()
             self.window_closed = True
             self.mmm = False
             if self.selected_skill.sprites()[2].skill_level == 1:
@@ -320,7 +317,6 @@ class Player(pygame.sprite.Sprite):
             self.Walkcount = 0
         self.surf = pygame.transform.scale(self.surf, (64, 64))
             
-
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -330,18 +326,99 @@ class Enemy(pygame.sprite.Sprite):
         self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
         self.surf = pygame.transform.scale(self.surf, self.scale)
         self.rect = self.surf.get_rect()
-
         self.enemy_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
         self.enemy_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
         self.enemy_hurt_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_2.png").convert_alpha(), self.scale)]
         self.enemy_hurt_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_2.png").convert_alpha(), self.scale)]
-        self.Walkcount = 0
+
         self.damage_count = 0
-        self.death_count = 0
+        self.death_count = 0        
+        self.Walkcount = 0
         self.damage = False
+    
 
         # 적 스텟
         self.health = 200
+        self.speed = 3
+
+    def get_damage(self,amount):
+        if self.health > 0:
+            self.health -= amount
+        if self.health < 0:
+            self.health = 0
+        self.damage = True
+
+#거리에 따라서 적이미지 방향판단
+    def input(self): 
+        if player.rect.centerx >= self.rect.centerx :
+            self.left = False
+            self.right = True
+        if player.rect.centerx < self.rect.centerx :
+            self.right = False
+            self.left = True
+
+#적이미지 변환
+    def update(self):
+        
+        if self.health <= 0:
+            enemies.remove(self)
+            Enemy_group.remove(self)
+            # mmanager.playsound(hit, 0.05)
+            player.charge_exp += 100
+            self.surf = pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/enemy_dead.png").convert_alpha(), self.scale)
+            self.death_count += 1
+            self.health += 1
+        if self.death_count >= 1:
+            self.death_count += 1
+            if self.death_count == 120:
+                self.kill()
+        else:
+            self.input()
+        if self.Walkcount + 1 >= 16:
+                self.Walkcount = 0
+        elif self.right:
+            self.surf = self.enemy_move_right[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy_hurt_right[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        elif self.left:
+            self.surf = self.enemy_move_left[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy_hurt_left[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        else:
+            self.surf = self.enemy_move_left[0]
+            if self.damage == True:
+                self.surf = self.enemy_hurt_left[0]
+                self.damage_count += 1
+            self.Walkcount = 0
+        if self.damage_count == 30:
+            self.damage = False
+            self.damage_count = 0
+
+# 적, Sprite 클래스를 바탕으로 만듦
+class Enemy2(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Enemy2, self).__init__() # 여기까지 무시해도 됨
+
+        self.scale = (96, 96)
+        self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
+        self.surf = pygame.transform.scale(self.surf, self.scale)
+        self.rect = self.surf.get_rect()
+        self.enemy2_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
+        self.enemy2_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
+        self.enemy2_hurt_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_2.png").convert_alpha(), self.scale)]
+        self.enemy2_hurt_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_2.png").convert_alpha(), self.scale)]
+
+        self.damage_count = 0
+        self.death_count = 0        
+        self.Walkcount = 0
+        self.damage = False
+
+        # 적 스텟
+        self.health = 500
         self.speed = 2
 
     def get_damage(self,amount):
@@ -364,49 +441,136 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         if self.health <= 0:
             enemies.remove(self)
+            Enemy2_group.remove(self)
+            # mmanager.playsound(hit, 0.05)
             player.charge_exp += 100
             self.surf = pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/enemy_dead.png").convert_alpha(), self.scale)
             self.death_count += 1
             self.health += 1
-
         if self.death_count >= 1:
             self.death_count += 1
             if self.death_count == 120:
                 self.kill()
-
         else:
             self.input()
+        if self.Walkcount + 1 >= 16:
+                self.Walkcount = 0
+        elif self.right:
+            self.surf = self.enemy2_move_right[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy2_hurt_right[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        elif self.left:
+            self.surf = self.enemy2_move_left[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy2_hurt_left[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        else:
+            self.surf = self.enemy2_move_left[0]
+            if self.damage == True:
+                self.surf = self.enemy2_hurt_left[0]
+                self.damage_count += 1
+            self.Walkcount = 0
+        if self.damage_count == 30:
+            self.damage = False
+            self.damage_count = 0
 
-            if self.Walkcount + 1 >= 16:
+class Enemy3(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Enemy3, self).__init__() # 여기까지 무시해도 됨
+
+        self.scale = (128, 128)
+        self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
+        self.surf = pygame.transform.scale(self.surf, self.scale)
+        self.rect = self.surf.get_rect()
+        self.enemy_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
+        self.enemy_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
+        self.enemy3_hurt_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_right_2.png").convert_alpha(), self.scale)]
+        self.enemy3_hurt_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/hurt_left_2.png").convert_alpha(), self.scale)]
+
+        self.damage_count = 0
+        self.death_count = 0        
+        self.Walkcount = 0
+        self.damage = False
+
+        # 적 스텟
+        self.health = 1000
+        self.speed = 1
+
+    def get_damage(self,amount):
+        if self.health > 0:
+            self.health -= amount
+        if self.health < 0:
+            self.health = 0
+        self.damage = True
+
+#거리에 따라서 적이미지 방향판단
+    def input(self): 
+        if player.rect.centerx >= self.rect.centerx :
+            self.left = False
+            self.right = True
+        if player.rect.centerx < self.rect.centerx :
+            self.right = False
+            self.left = True
+
+#적이미지 변환
+    def update(self):
+        
+        if self.health <= 0:
+            enemies.remove(self)
+            Enemy3_group.remove(self)
+            # mmanager.playsound(hit, 0.05)
+            player.charge_exp += 100
+            self.surf = pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/enemy_dead.png").convert_alpha(), self.scale)
+            self.death_count += 1
+            self.health += 1
+        if self.death_count >= 1:
+            self.death_count += 1
+            if self.death_count == 120:
+                self.kill()
+        else:
+            self.input()
+        if self.Walkcount + 1 >= 16:
                 self.Walkcount = 0
-            elif self.right:
-                self.surf = self.enemy_move_right[self.Walkcount//8]
-                if self.damage == True:
-                    self.surf = self.enemy_hurt_right[self.Walkcount//8]
-                    self.damage_count += 1
-                self.Walkcount += 1
-            elif self.left:
-                self.surf = self.enemy_move_left[self.Walkcount//8]
-                if self.damage == True:
-                    self.surf = self.enemy_hurt_left[self.Walkcount//8]
-                    self.damage_count += 1
-                self.Walkcount += 1
-            else:
-                self.surf = self.enemy_move_left[0]
-                if self.damage == True:
-                    self.surf = self.enemy_hurt_left[0]
-                    self.damage_count += 1
-                self.Walkcount = 0
-            if self.damage_count == 30:
-                self.damage = False
-                self.damage_count = 0
+        elif self.right:
+            self.surf = self.enemy_move_right[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy3_hurt_right[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        elif self.left:
+            self.surf = self.enemy_move_left[self.Walkcount//8]
+            if self.damage == True:
+                self.surf = self.enemy3_hurt_left[self.Walkcount//8]
+                self.damage_count += 1
+            self.Walkcount += 1
+        else:
+            self.surf = self.enemy_move_left[0]
+            if self.damage == True:
+                self.surf = self.enemy3_hurt_left[0]
+                self.damage_count += 1
+            self.Walkcount = 0
+        if self.damage_count == 30:
+            self.damage = False
+            self.damage_count = 0
 
 def colllided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
-    if len(pygame.sprite.spritecollide(player, enemies, False)) > 0 and (player.cooldown == False):
-        player.get_damage(10)
+    if len(pygame.sprite.spritecollide(player, Enemy_group, False)) > 0 and (player.cooldown == False):
+        player.get_damage(50)
         player.player_hit()
-
+def colllided2():
+    # 여기에 충돌 시 hp 깎는 걸 만들자.
+    if len(pygame.sprite.spritecollide(player, Enemy2_group, False)) > 0 and (player.cooldown == False):
+        player.get_damage(100)
+        player.player_hit()
+def colllided3():
+    # 여기에 충돌 시 hp 깎는 걸 만들자.
+    if len(pygame.sprite.spritecollide(player, Enemy3_group, False)) > 0 and (player.cooldown == False):
+        player.get_damage(300)
+        player.player_hit()
 
 group0 = pygame.sprite.Group()
 hit_cooldown = 60
@@ -473,6 +637,58 @@ def add_enemy(player):
 		camera_group.add(enemy)
 		all_sprites.add(enemy)
 
+def add_enemy2(player):
+		enemy2 = Enemy2()
+		player_offset_x = player.rect.centerx - screen_width//2
+		player_offset_y = player.rect.centery - screen_height//2
+		coordinate = 0, 0
+		x = random.randint(-320, screen_width + 320)
+		y = random.randint(-320, screen_height + 320)
+
+		if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
+			a = x + screen_width, x - screen_width
+			b = y + screen_height, y - screen_height
+			coordinate = random.choice(a) + player_offset_x, random.choice(b) + player_offset_y
+		else: coordinate = round(x + player_offset_x), round(y + player_offset_y)
+		# 좌표에 현재 플레이어의 오프셋을 더해주어 적들이 화면 밖 원래 자리에 생성되도록 수정.
+		enemy2.rect.center = coordinate
+		enemies.add(enemy2)
+		Enemy2_group.add(enemy2)
+		camera_group.add(enemy2)
+		all_sprites.add(enemy2)
+def add_enemy3(player):
+		enemy3 = Enemy3()
+		player_offset_x = player.rect.centerx - screen_width//2
+		player_offset_y = player.rect.centery - screen_height//2
+		coordinate = 0, 0
+		x = random.randint(-320, screen_width + 320)
+		y = random.randint(-320, screen_height + 320)
+
+		if -120 < x < screen_width + 120 and -120 < y < screen_height + 120:
+			a = x + screen_width, x - screen_width
+			b = y + screen_height, y - screen_height
+			coordinate = random.choice(a) + player_offset_x, random.choice(b) + player_offset_y
+		else: coordinate = round(x + player_offset_x), round(y + player_offset_y)
+		# 좌표에 현재 플레이어의 오프셋을 더해주어 적들이 화면 밖 원래 자리에 생성되도록 수정.
+		enemy3.rect.center = coordinate
+		enemies.add(enemy3)
+		Enemy3_group.add(enemy3)
+		camera_group.add(enemy3)
+		all_sprites.add(enemy3)
+Enemy_group = pygame.sprite.Group()
+Enemy2_group = pygame.sprite.Group()
+Enemy3_group = pygame.sprite.Group()
+camera_group = CameraGroup()
+player = Player()
+camera_group.add(player)
+clock = pygame.time.Clock()
+
+# 랜덤 생성 간격 
+enemy_term = 120
+enemy2_term = 120
+enemy3_term = 120
+
+
 camera_group = CameraGroup()
 player = Player()
 camera_group.add(player)
@@ -528,12 +744,65 @@ class Skill(pygame.sprite.Sprite):
         self.txt = self.all_txt[self.skill_level]
         self.name = ''
 
-        # 스킬 레벨업
-    def skill_level_up(self):
-        self.skill_damage = self.skill_damage * (self.level//10)
-
     def txt_update(self):
         self.txt = self.all_txt[self.skill_level]
+
+        # 스킬 레벨업
+    def skill_level_up(self):
+        self.skill_level += 1
+        self.txt_update()
+        if self.skill_level == 2:
+            self.skill_damage += self.skill_damage * (1//5)
+        elif self.skill_level == 2 and self.floor_skill == True:
+            self.floor_damage += self.floor_damage * (3/10)
+
+        elif self.skill_level == 3:
+            self.damage_area.width = self.damage_area.width * 13/10
+            self.damage_area.width = self.damage_area.height * 13/10
+
+        elif self.skill_level == 3 and self.floor_skill == True:
+            self.floor_area += (self.floor_area * 4/10, self.floor_area * 4/10)
+
+        elif self.skill_level == 4:
+            self.cool_time -= self.cool_time * 8/10
+
+        elif self.skill_level == 4 and self.floor_skill == True:
+            self.floor_time += self.floor_time * 1/2 
+
+        elif self.skill_level == 5:
+            self.skill_damage = self.skill_damage * (3/2)
+
+        elif self.skill_level == 5 and self.floor_skill == True:
+            self.floor_damage += self.floor_damage * (4/10)
+
+        elif self.skill_level == 6:
+            self.speed *= 2
+
+        elif self.skill_level == 7:
+            self.damage_area.width = self.damage_area.width * 3/2
+            self.damage_area.width = self.damage_area.height * 3/2
+
+        elif self.skill_level == 7 and self.floor_skill == True:
+            self.floor_area += (self.floor_area * 1/2, self.floor_area * 1/2)
+
+        elif self.skill_level == 8:
+            self.cool_time -= self.cool_time * 7/10
+
+        elif self.skill_level == 9:
+            self.skill_damage = self.skill_damage * 2
+
+        elif self.skill_level == 9 and self.floor_skill == True:
+            self.damage_area.width= self.damage_area.width * 2
+            self.damage_area.height = self.damage_area.height * 2
+
+        elif self.skill_level == 10:
+            self.damage_area = (self.damage_area.width * 2, self.damage_area.height * 2)
+            All_Skills.remove(self)
+
+        elif self.skill_level == 10 and self.floor_skill == True:
+            self.floor_area += (self.floor_area * 6/10, self.floor_area * 6/10)
+            All_Skills.remove(self)
+
 
     # 스킬 공격 범위
     def make_damage_area(self, coordinate):
@@ -548,12 +817,6 @@ class Skill(pygame.sprite.Sprite):
         for i in pygame.sprite.spritecollide(self, enemies, False):
             i.get_damage(self.floor_damage)
 
-    def run_touch_deal(self):
-        self.damage_area.center = coordinate
-        self.rect = self.damage_area
-
-
-
     # 스킬 이펙트 발생
     def run_effect(self):
         self.mass = len(self.skill_effect)
@@ -564,9 +827,9 @@ class Skill(pygame.sprite.Sprite):
             self.count_tick += 1
         elif self.floor_skill == True and self.effect_time <= self.count_tick and self.count_tick < (self.floor_time + self.effect_time):
             self.surf = pygame.image.load(self.floor_skill_effect).convert_alpha()
-            self.surf = pygame.transform.scale(self.surf, (240, 240))
+            self.surf = pygame.transform.scale(self.surf, self.floor_area)
             self.surf.set_colorkey((255, 255, 255), RLEACCEL)
-            if (self.count_tick - self.effect_time) % self.floor_time == 0:
+            if (self.count_tick - self.effect_time) % self.floor_time//5 == 0:
                 self.run_floor_deal()
             self.count_tick += 1
         else:
@@ -662,18 +925,33 @@ test_skill.bomb_skill = True
 test_skill.name = '테스트용 스킬'
 
 ice_bomb = Skill(ice_bomb_icon, ice_bomb_throw, ice_bomb_txt)
-ice_bomb.cool_time = 60 # 스킬 쿨타임 60=1초
+ice_bomb.cool_time = 240 # 스킬 쿨타임 60=1초
 ice_bomb.effect_time = 16 # 스킬 이펙트 시간
 ice_bomb.skill_effect = test_skill_effect
-ice_bomb.skill_damage = 10
-ice_bomb.floor_time = 180       
+ice_bomb.floor_time = 180
+ice_bomb.floor_area = (240, 240)
 ice_bomb.floor_skill = True
-ice_bomb.floor_damage = 100
+ice_bomb.floor_damage = 40
 ice_bomb.floor_skill_effect = ice_bomb_floor
 ice_bomb.name = '눈 폭탄'
 ice_bomb.floor_area = (160, 160)
 All_Skills.add(ice_bomb)
 ice_bomb.chosen = True
+
+basic_skill = Skill(basic_skill_icon, basic_skill_throw, basic_skill_txt)
+basic_skill.name = '요정을 위한 첫 선물'
+basic_skill.cool_time = 240
+basic_skill.damage_area = pygame.rect.Rect(0, 0, 64, 64)
+basic_skill.skill_damage = 150
+basic_skill.skill_effect = basic_skill_effect
+basic_skill.effect_time = 32
+basic_skill.speed = 5
+All_Skills.add(basic_skill)
+basic_skill.bomb_skill = True
+basic_skill.chosen = True
+basic_skill.skill_level = 1
+basic_skill.txt_update()
+
 
 health_up = Skill(health_up_icon, dummy_throw_object, health_up_txt)
 health_up.stat = True
@@ -750,10 +1028,16 @@ while running:
             if pressed[pygame.K_a]:
                 intro = False
         pygame.display.update()
-
     #적 랜덤 생성
-    if (whole_ticks % enemy_term) == 0:
-        add_enemy(player)
+    if whole_ticks > 0:
+        if (whole_ticks % enemy_term) == 0:
+            add_enemy(player)
+    if whole_ticks > 3600:
+        if (whole_ticks % enemy2_term) == 0:
+            add_enemy2(player)
+    if whole_ticks > 7200:
+        if (whole_ticks % enemy3_term) == 0:    
+            add_enemy3(player)
 
     # 플레이어 쿨다운
     if whole_ticks >= player.present_ticks +  hit_cooldown:
@@ -796,6 +1080,7 @@ while running:
 
     test_skill.run_skill((list_cd1[0], list_cd1[1]), whole_ticks)
     ice_bomb.run_skill((100, 100), whole_ticks)
+    basic_skill.run_skill((list_cd1[0], list_cd1[1]), whole_ticks)
 
     #적과 플레이어 화면에 표시
     camera_group.update()
