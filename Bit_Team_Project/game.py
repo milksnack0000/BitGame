@@ -292,13 +292,12 @@ class Enemy(pygame.sprite.Sprite):
 
         # 적 스텟
         self.health = 200
-
     def get_damage(self,amount):
         if self.health > 0:
             self.health -= amount
         if self.health < 0:
             self.health = 0
-
+#거리에 따라서 적이미지 방향판단
     def input(self): 
 
         if player.rect.centerx >= self.rect.centerx :
@@ -311,7 +310,7 @@ class Enemy(pygame.sprite.Sprite):
             self.right = False
             self.left = True
 
-
+#적이미지 변환
     def update(self):
         if self.health <= 0:
             self.kill()
