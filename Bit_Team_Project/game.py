@@ -3,6 +3,7 @@ from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
 from effect import *
+import time
 
 pygame.init() # 초기화
 
@@ -14,14 +15,13 @@ WHITE = (255, 255, 255)
 
 main_menu = False
 menu_command = 0
-mmm = True
 whole_ticks = 0
 
 
 
 pygame.display.set_caption("BIT_GAME")
 fontsize = 16
-font = pygame.font.SysFont("malgungothic", fontsize)
+font = pygame.font.Font("malgun.ttf", fontsize)
 
 #눈 효과
 snow = []
@@ -53,7 +53,15 @@ class Button:
         pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
         self.text2 = font.render(self.text, True, (0, 0, 0))
         self.text3 = font.render(self.name, True, (0, 0, 0))
-        screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+        if len(self.text) >= 19:
+            self.text1 = self.text[:19]
+            self.text4 = self.text[19:]
+            self.text2 = font.render(self.text1, True, (0, 0, 0))
+            self.text5 = font.render(self.text4, True, (0, 0, 0))
+            screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+            screen.blit(self.text5, (self.button.centerx-64, self.button.centery - fontsize*1.5 + 16))
+        else:
+            screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
         screen.blit(self.text3, (self.button.centerx-64, self.button.centery - fontsize*1.5 - 16))
         screen.blit(self.icon_surf, (self.button.centerx - 190 , self.button.centery - 48))
 
@@ -62,13 +70,25 @@ class Button:
             pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
             self.text2 = font.render(self.text, True, (0, 255, 0))
             screen.blit(self.text3, (self.button.centerx-64, self.button.centery - fontsize*1.5 - 16))
-            screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+            if len(self.text) >= 19:
+                self.text2 = font.render(self.text1, True, (0, 255, 0))
+                self.text5 = font.render(self.text4, True, (0, 255, 0))
+                screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+                screen.blit(self.text5, (self.button.centerx-64, self.button.centery - fontsize*1.5 + 16))
+            else:
+                screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
             screen.blit(self.icon_surf, (self.button.centerx - 190 , self.button.centery - 48))
         else:
             pygame.draw.rect(screen, 'light gray', self.button, 0, 5)
             self.text2 = font.render(self.text, True, (0, 0, 0))
             screen.blit(self.text3, (self.button.centerx-64, self.button.centery - fontsize*1.5 - 16))
-            screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+            if len(self.text) >= 19:
+                self.text2 = font.render(self.text1, True, (0, 0, 0))
+                self.text5 = font.render(self.text4, True, (0, 0, 0))
+                screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
+                screen.blit(self.text5, (self.button.centerx-64, self.button.centery - fontsize*1.5 + 16))
+            else:
+                screen.blit(self.text2, (self.button.centerx-64, self.button.centery - fontsize*1.5))
             screen.blit(self.icon_surf, (self.button.centerx - 190 , self.button.centery - 48))
 
     def check_clicked(self):
@@ -101,9 +121,9 @@ class Player(pygame.sprite.Sprite):
         self.current_exp = 0
         self.max_exp = 100
         self.exp_bar_length = 500
-        self.surplus_exp = 0
         self.exp_ratio = self.max_exp / self.exp_bar_length
-        self.level_get = False
+        self.window_closed = False
+        self.charge_exp = 0
 
 		# 플레이어 이동
         self.direction = pygame.math.Vector2()
@@ -118,21 +138,50 @@ class Player(pygame.sprite.Sprite):
         self.health_change_speed = 2
         self.cooldown = False
         self.present_ticks = 0
+    
+    def pop_window(self):
+        self.button1.changeColor()
+        self.button2.changeColor()
+        self.button3.changeColor()
+
+        if self.button1.check_clicked():
+            self.selected_skill.sprites()[0].skill_level += 1
+            self.selected_skill.sprites()[0].selected_time = whole_ticks
+            self.selected_skill.sprites()[0].txt_update()
+            self.window_closed = True
+            self.mmm = False
+            if self.selected_skill.sprites()[0].skill_level == 1:
+                self.selected_skill.sprites()[0].chosen = True
+            self.selected_skill = []
+        
+        if self.button2.check_clicked():
+            self.selected_skill.sprites()[1].skill_level += 1
+            self.selected_skill.sprites()[1].selected_time = whole_ticks
+            self.selected_skill.sprites()[1].txt_update()
+            self.window_closed = True
+            self.mmm = False
+            if self.selected_skill.sprites()[1].skill_level == 1:
+                self.selected_skill.sprites()[1].chosen = True
+            self.selected_skill = []
+
+        if self.button3.check_clicked():
+            self.selected_skill.sprites()[2].skill_level += 1
+            self.selected_skill.sprites()[2].selected_time = whole_ticks
+            self.selected_skill.sprites()[2].txt_update()
+            self.window_closed = True
+            self.mmm = False
+            if self.selected_skill.sprites()[2].skill_level == 1:
+                self.selected_skill.sprites()[2].chosen = True
+            self.selected_skill = []
 
     def get_exp(self,amount):
-        print(self.level)
         self.current_exp += amount
         if self.current_exp >= self.max_exp:
-            self.surplus_exp = self.current_exp - self.max_exp
+            self.charge_exp -= self.max_exp
             self.current_exp = 0
-            self.level + 1
-            self.max_exp = 100 * self.level/10
-            self.level_get = True
-        if self.surplus_exp >= self.max_exp:
-            self.get_exp(self.surplus_exp)
-        else:
-            self.current_exp += self.surplus_exp 
-            self.surplus_exp = 0
+            self.level += 1
+            self.max_exp = 100 * (self.level/10)
+
 
     def level_up(self):
         self.selected_skill = pygame.sprite.Group()
@@ -147,11 +196,13 @@ class Player(pygame.sprite.Sprite):
         self.button1 = Button(self.selected_skill.sprites()[0].icon, self.selected_skill.sprites()[0].txt , self.place[0], self.selected_skill.sprites()[0].name)
         self.button2 = Button(self.selected_skill.sprites()[1].icon, self.selected_skill.sprites()[1].txt , self.place[1], self.selected_skill.sprites()[1].name)
         self.button3 = Button(self.selected_skill.sprites()[2].icon, self.selected_skill.sprites()[2].txt , self.place[2], self.selected_skill.sprites()[2].name)
+        All_Skills.add(self.selected_skill)
+        self.mmm = True
 
     def draw_exp(self):
         #경험치 글씨
         exp_font = pygame.font.SysFont("None", 40, True)
-        exp_text = exp_font.render("EXP", True, (90,90,90))
+        exp_text = exp_font.render("LV." + str(self.level), True, (90,90,90))
 
         exp_bar_width = int(self.current_exp / self.exp_ratio)
         exp_bar = pygame.Rect(screen_width/2 -250 , 0, exp_bar_width,30)
@@ -270,18 +321,19 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.transform.scale(self.surf, (64, 64))
             
 
-
-
-
 # 적, Sprite 클래스를 바탕으로 만듦
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__() # 여기까지 무시해도 됨
 
-        self.surf = pygame.image.load("Sprite/enemy.png").convert_alpha() # 이미지 불러오기
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
-        self.surf = pygame.transform.scale(self.surf, (32, 32))
+        self.scale = (64, 64)
+        self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
+        self.surf = pygame.transform.scale(self.surf, self.scale)
         self.rect = self.surf.get_rect()
+
+        self.enemy_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
+        self.enemy_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
+        self.Walkcount = 0
 
         # 적 스텟
         self.health = 200
@@ -292,10 +344,33 @@ class Enemy(pygame.sprite.Sprite):
         if self.health < 0:
             self.health = 0
 
+#거리에 따라서 적이미지 방향판단
+    def input(self): 
+        if player.rect.centerx >= self.rect.centerx :
+            self.left = False
+            self.right = True
+        if player.rect.centerx < self.rect.centerx :
+            self.right = False
+            self.left = True
+
+#적이미지 변환
     def update(self):
         if self.health <= 0:
             self.kill()
-            player.get_exp(100)
+            player.charge_exp += 100
+        self.input()
+
+        if self.Walkcount + 1 >= 16:
+            self.Walkcount = 0
+        elif self.right:
+            self.surf = self.enemy_move_right[self.Walkcount//8]
+            self.Walkcount += 1
+        elif self.left:
+            self.surf = self.enemy_move_left[self.Walkcount//8]
+            self.Walkcount += 1
+        else:
+            self.surf = self.enemy_move_left[0]
+            self.Walkcount = 0
 
 
 
@@ -306,7 +381,7 @@ def colllided():
         player.player_hit()
 
 
-
+group0 = pygame.sprite.Group()
 hit_cooldown = 600
 
 # 카메라
@@ -314,6 +389,7 @@ class CameraGroup(pygame.sprite.Group):
 	def __init__(self):                  
 		super().__init__()
 		self.display_surface = pygame.display.get_surface()
+
 
 		# camera offset(offset: 거리차)
 		self.offset = pygame.math.Vector2()
@@ -334,14 +410,21 @@ class CameraGroup(pygame.sprite.Group):
 	def custom_draw(self,player):
 		self.center_target_camera(player)
 
-		# ground 
-		#ground_offset = self.ground_rect.topleft - self.offset 
-		#self.display_surface.blit(self.ground_surf,ground_offset)
-
+		for sprite in self.sprites():
+			if isinstance(sprite, Skill):
+				if sprite.floor_skill == True:
+					self.remove(sprite)
+					group0.add(sprite)
+					offset_pos = sprite.rect.topleft - self.offset # 플레이어가 움직인 거리만큼 다른 스프라이트들에게 그 반대방향으로 가게 하는 코드
+					self.display_surface.blit(sprite.surf,offset_pos)
+					
 		# 화면에 띄우기와 카메라 이동
 		for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery): #스프라이트가 겹칠 때 y가 높으면 앞에오도록 한 코드
 			offset_pos = sprite.rect.topleft - self.offset # 플레이어가 움직인 거리만큼 다른 스프라이트들에게 그 반대방향으로 가게 하는 코드
 			self.display_surface.blit(sprite.surf,offset_pos)
+		for i in group0:
+			self.add(i)
+			group0.remove(i)
 
 # 적 랜덤 생성
 def add_enemy(player):
@@ -378,7 +461,7 @@ class Skill(pygame.sprite.Sprite):
     def __init__(self, icon, throwing_object, all_txt):
         super(Skill, self).__init__() # 여기까지 무시해도 됨
 
-        self.skill_level = 1 # 스킬 레벨
+        self.skill_level = 0 # 스킬 레벨
         self.skill_damage = 0 # 스킬 데미지
         self.skill_effect = "터지는 이미지 주소"
         self.throwing_object = throwing_object
@@ -389,7 +472,7 @@ class Skill(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rect.center = (screen_width // 2, screen_height // 2)
         self.damage_area = pygame.rect.Rect(100, 100, 100, 100)
-        self.speed = 2
+        self.speed = 4
         self.stat = False
         self.selected_time = 0
         self.cool_time = 0 # 스킬 쿨타임 60=1초
@@ -411,12 +494,15 @@ class Skill(pygame.sprite.Sprite):
 
         # 스킬 설명
         self.all_txt = all_txt
-        self.txt = self.all_txt[self.skill_level - 1]
+        self.txt = self.all_txt[self.skill_level]
         self.name = ''
 
-    def txt_update(self):
-        self.txt = self.all_txt[self.skill_level - 1]
+        # 스킬 레벨업
+    def skill_level_up(self):
+        self.skill_damage = self.skill_damage * (self.level//10)
 
+    def txt_update(self):
+        self.txt = self.all_txt[self.skill_level]
 
     # 스킬 공격 범위
     def make_damage_area(self, coordinate):
@@ -425,7 +511,7 @@ class Skill(pygame.sprite.Sprite):
         for i in pygame.sprite.spritecollide(self, enemies, False):
             i.get_damage(self.skill_damage)
     
-    def run_floor_deal(self, coordinate):
+    def run_floor_deal(self):
         for i in pygame.sprite.spritecollide(self, enemies, False):
             i.get_damage(self.floor_damage)
 
@@ -440,12 +526,12 @@ class Skill(pygame.sprite.Sprite):
             self.count_tick += 1
         elif self.floor_skill == True and self.effect_time <= self.count_tick and self.count_tick < (self.floor_time + self.effect_time):
             self.surf = pygame.image.load(self.floor_skill_effect).convert_alpha()
-            self.surf = pygame.transform.scale(self.surf, (320, 320))
+            self.surf = pygame.transform.scale(self.surf, (160, 160))
             self.surf.set_colorkey((255, 255, 255), RLEACCEL)
             self.rect = self.surf.get_rect()
             self.rect.center = self.set_coord
-            if self.count_tick - self.effect_time == self.floor_time // 10:
-                self.run_floor_deal(self.set_coord)
+            if (self.count_tick - self.effect_time) % self.floor_time == 0:
+                self.run_floor_deal()
             self.count_tick += 1
         else:
             camera_group.remove(self)
@@ -480,10 +566,6 @@ class Skill(pygame.sprite.Sprite):
             elif self.floor_skill == True:
                 self.rect.center = self.set_coord
                 
-
-
-
-
     # 스킬 전체 구동
     def run_skill(self, coordinate, whole_ticks):
 
@@ -504,8 +586,6 @@ class Skill(pygame.sprite.Sprite):
         if whole_ticks >= self.selected_time + self.cool_time and self.chosen == True:
             self.throwing_skill(coordinate)
             camera_group.add(self)
-
-
 
 
 # 폭탄 스킬 생성 예시(던지면 범위에 터지는)
@@ -538,7 +618,7 @@ class Skill(pygame.sprite.Sprite):
 test_skill = Skill(test_skill_icon, skill_throwing_test, skill_txt)
 All_Skills.add(test_skill)
 test_skill.cool_time = 300 # 스킬 쿨타임 60=1초
-test_skill.effect_time = 30 # 스킬 이펙트 시간
+test_skill.effect_time = 16 # 스킬 이펙트 시간
 test_skill.skill_effect = test_skill_effect
 test_skill.skill_damage = 1000
 test_skill.chosen = True
@@ -547,16 +627,16 @@ test_skill.name = '테스트용 스킬'
 
 ice_bomb = Skill(ice_bomb_icon, ice_bomb_throw, ice_bomb_txt)
 ice_bomb.cool_time = 60 # 스킬 쿨타임 60=1초
-ice_bomb.effect_time = 30 # 스킬 이펙트 시간
+ice_bomb.effect_time = 16 # 스킬 이펙트 시간
 ice_bomb.skill_effect = test_skill_effect
 ice_bomb.skill_damage = 10
 ice_bomb.floor_time = 180       
 ice_bomb.floor_skill = True
-ice_bomb.floor_damage = 20
+ice_bomb.floor_damage = 100
 ice_bomb.floor_skill_effect = ice_bomb_floor
 ice_bomb.name = '눈 폭탄'
 All_Skills.add(ice_bomb)
-ice_bomb.chosen = False
+ice_bomb.chosen = True
 
 health_up = Skill(health_up_icon, dummy_throw_object, health_up_txt)
 health_up.stat = True
@@ -617,6 +697,7 @@ for i in range(2500):
 running = True
 while running:
     clock.tick(60)
+    pressed = pygame.key.get_pressed()
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
@@ -669,43 +750,31 @@ while running:
     player.advanced_health()
     player.draw_exp()
 
-    if player.level_get == True:
+    if player.charge_exp >= player.max_exp:
         player.level_up()
         player.button1.draw()
         player.button2.draw()
         player.button3.draw()
-        while mmm:
+        while player.mmm:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    mmm = False
-                player.button1.changeColor()
-                player.button2.changeColor()
-                player.button3.changeColor()
+                    player.mmm = False
 
-                if player.button1.check_clicked():
-                    player.selected_skill.sprites()[0].skill_level += 1
-                    player.selected_skill.sprites()[0].selected_time = whole_ticks
-                    player.selected_skill.sprites()[0].txt_update()
-                    if player.selected_skill.sprites()[0].skill_level == 1:
-                        player.selected_skill.sprites()[0].chosen = True
-                    mmm = False
-                if player.button2.check_clicked():
-                    player.selected_skill.sprites()[1].skill_level += 1
-                    player.selected_skill.sprites()[1].selected_time = whole_ticks
-                    player.selected_skill.sprites()[1].txt_update()
-                    if player.selected_skill.sprites()[1].skill_level == 1:
-                        player.selected_skill.sprites()[1].chosen = True
-                    mmm = False
-                if player.button3.check_clicked():
-                    player.selected_skill.sprites()[2].skill_level += 1
-                    player.selected_skill.sprites()[2].selected_time = whole_ticks
-                    player.selected_skill.sprites()[2].txt_update()
-                    if player.selected_skill.sprites()[2].skill_level == 1:
-                        player.selected_skill.sprites()[2].chosen = True
-                    mmm = False
+                player.pop_window()
+                
+                if player.charge_exp >= player.max_exp and player.window_closed == True:
+                    player.get_exp(player.charge_exp)
+                    player.window_closed = False
+                    
+                elif player.window_closed == True:
+                    player.current_exp += player.charge_exp 
+                    player.charge_exp = 0
+                    player.window_closed = False
+                    
             pygame.display.update()
-        player.level_get = False
+        
     whole_ticks += 1
     pygame.display.update()
+
 
 pygame.quit()
