@@ -1,0 +1,95 @@
+import math
+import pygame as pygame
+
+
+LIME = pygame.Color(192, 255, 0)
+
+
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet. """
+
+    def __init__(self, pos, enemy, screen_rect):
+        """Take the pos, direction and angle of the player."""
+        super().__init__()
+        self.image = pygame.Surface((16, 10), pygame.SRCALPHA)
+        pygame.draw.polygon(self.image, LIME, ((0, 0), (16, 5), (0, 10)))
+        # The `pos` parameter is the center of the bullet.rect.
+        self.rect = self.image.get_rect(center=pos)
+        self.position = pygame.math.Vector2(pos)  # The position of the bullet.
+
+        # This Vector points from the mouse pos to the enemy.
+        direction = enemy - pos
+        # The polar coordinates of the direction Vector.
+        radius, angle = direction.as_polar()
+        # Rotate the image by the negatiVe angle (because the y-axis is flipped).
+        self.image = pygame.transform.rotozoom(self.image, -angle, 1)
+        # The Velocity is the normalized direction Vector scaled to the desired length.
+        self.Velocity = direction.normalize() * 11
+        self.screen_rect = screen_rect
+
+    def update(self):
+        """MoVe the bullet."""
+        self.position += self.Velocity  # Update the position Vector.
+        self.rect.center = self.position  # And the rect.
+
+        # RemoVe the bullet when it leaVes the screen.
+        if not self.screen_rect.contains(self.rect):
+            self.kill()
+
+
+def intercept(position, bullet_speed, enemy, target_Velocity):
+    a = target_Velocity.x**2 + target_Velocity.y**2 - bullet_speed**2
+    b = 2 * (target_Velocity.x * (enemy.x - position.x) + target_Velocity.y * (enemy.y - position.y))
+    c = (enemy.x - position.x)**2 + (enemy.y - position.y)**2
+
+    discriminant = b*b - 4*a*c
+    if discriminant < 0:
+        print("Target can't be reached.")
+        return None
+    else:
+        t1 = (-b + math.sqrt(discriminant)) / (2*a)
+        t2 = (-b - math.sqrt(discriminant)) / (2*a)
+        t = max(t1, t2)
+        x = target_Velocity.x * t + enemy.x
+        y = target_Velocity.y * t + enemy.y
+        return pygame.math.Vector2(x, y)
+
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    screen_rect = screen.get_rect()
+    clock = pygame.time.Clock()
+
+    all_sprites = pygame.sprite.Group()
+    bullet_group = pygame.sprite.Group()
+
+    enemy = pygame.math.Vector2(50, 300)
+    target_Velocity = pygame.math.Vector2(4, 3)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                target_Vector = intercept(pygame.math.Vector2(event.pos), 11, enemy, target_Velocity)
+                # Shoot a bullet. Pass the start position (in this
+                # case the mouse position) and the enemy position Vector.
+                if target_Vector is not None:  # Shoots only if the enemy can be reached.
+                    bullet = Bullet(event.pos, target_Vector, screen_rect)
+                    all_sprites.add(bullet)
+                    bullet_group.add(bullet)
+
+        enemy += target_Velocity
+        if enemy.x >= screen_rect.right or enemy.x < 0:
+            target_Velocity.x *= -1
+        if enemy.y >= screen_rect.bottom or enemy.y < 0:
+            target_Velocity.y *= -1
+
+        all_sprites.update()
+        all_sprites.draw(screen)
+
+
+if __name__ == '__main__':
+    main()
