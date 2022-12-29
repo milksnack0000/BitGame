@@ -288,19 +288,6 @@ class Enemy(pygame.sprite.Sprite):
         self.surf.set_colorkey((255, 255, 255), RLEACCEL) # 투명한 부분 색 선택
         self.surf = pygame.transform.scale(self.surf, (32, 32))
         self.rect = self.surf.get_rect()
-        self.contadordecolisiones = 1
-        self.enerandom = random.randint(0,4)
-        self.velocity = velocitynalguis
-
-        if self.enerandom == 0:
-             self.rect.center = (random.randrange(-130,-30),random.randrange(-130,height+130))
-        if self.enerandom == 1:
-             self.rect.center = (random.randrange(-130,width+130),random.randrange(-130,-30))
-        if self.enerandom == 2:
-             self.rect.center = (random.randrange(width+30,width+130),random.randrange(-130,height+130))
-        if self.enerandom == 3:
-            self.rect.center = (random.randrange(-130,width+130),random.randrange(height+30,height+130))
-
 
         # 적 스텟
         self.health = 200
@@ -312,38 +299,9 @@ class Enemy(pygame.sprite.Sprite):
             self.health = 0
 
     def update(self):
-        self.pely = player.rect.y
-        self.pelx = player.rect.x
-        self.perx = self.rect.x
-        self.pery = self.rect.y
-
-        self.dist = math.sqrt(((self.pely-self.pery)**2) + ((self.pelx-self.perx)**2))/velocitynalguis
-
-        self.angle = math.atan2(self.pely-self.pery,self.pelx-self.perx)
-
-        self.speedx = 0
-        self.speedy = 0
-        self.speedx = math.cos(self.angle) 
-        self.speedy = math.sin(self.angle) 
-        
-        old_rect = self.rect.copy()
-        if self.dist>=1:
-            self.rect.x += velocitynalguis * self.speedx
-            self.rect.y += velocitynalguis * self.speedy
-        global hits
-      # Checks for collision with the Player
-        hits = pygame.sprite.spritecollide(self, Playergroup, False)
-        if len(hits) > 1: # at last 1, because the ball hits itself
-            if random.randrange(2) == 0:
-                self.rect.x = old_rect.x
-            else:
-                self.rect.y = old_rect.y
-        if len(hits) > 1:
-                    self.rect = old_rect
-
         if self.health <= 0:
-                self.kill()
-                player.get_exp(100)
+            self.kill()
+            player.get_exp(100)
 
 
 
@@ -626,7 +584,7 @@ Playergroup.add(player)
 
 #적 플레이어 추적
 dx, dy = 0,0
-hits_cooldown = pygame.USEREVENT + 2
+
 #게임오버 화면
 def showGameOverScreen():
     font_gameover = pygame.font.SysFont(None, 80) # 게임오버 폰트
@@ -661,22 +619,15 @@ for i in range(2500):
 	random_x = random.randint(-9000,9000)
 	random_y = random.randint(-9000,9000)
 	Tree((random_x,random_y),camera_group)
-requested_enemies = 1
-intro = 1
-whole_tick = 0 
-Enemy_group = pygame.sprite.Group()
-#실행
+
 #실행
 running = True
-startTime = time.time() # 시작 시간(살아남은 시간)y
+startTime = time.time() 
 while running:
-    whole_tick += 1
     for event in pygame.event.get():
-        if event.type == hits_cooldown:
-            player.cooldown = False
+
         if event.type == pygame.QUIT:
-            running = 0
-            print(a)
+            running = False
 
     #적 랜덤 생성
     if (whole_ticks % enemy_term) == 0:
@@ -726,6 +677,13 @@ while running:
     #적과 플레이어 화면에 표시
     camera_group.update()
     camera_group.custom_draw(player)
+    #살아남은 시간
+    a = str(int(time.time() - startTime))
+    counting_text = font.render(a, 1, (0,0,0))
+    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
+    counting_rect = counting_text.get_rect(center = center0)
+    screen.blit(counting_text, counting_rect)
+    print(a)
 
     #눈 효과 생성
     for ice in range(len(snow)):
@@ -737,14 +695,6 @@ while running:
 
     player.advanced_health()
     player.draw_exp()
-    font = pygame.font.SysFont(None, 32)
-    a = str(int(time.time() - startTime))
-    counting_text = font.render(a, 1, (0,0,0))
-    center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
-    counting_rect = counting_text.get_rect(center = center0)
-    screen.blit(counting_text, counting_rect)
-    print(a)
-
     gamepoint = int(a)
 
     pressed = pygame.key.get_pressed()
@@ -762,8 +712,8 @@ while running:
     pygame.display.update()
     print(player.rect.center)
     clock.tick(60)
-    print(whole_tick)
-
+    print(whole_ticks)
+    
 
     if player.level_get == True:
         player.level_up()
@@ -801,6 +751,7 @@ while running:
                     mmm = False
             pygame.display.update()
         player.level_get = False
+    whole_ticks += 1
     pygame.display.update()
 
 pygame.time.delay(3000)
