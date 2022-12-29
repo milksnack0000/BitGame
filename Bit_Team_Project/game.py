@@ -739,3 +739,8 @@ while running:
     pygame.display.update()
 
 pygame.quit()
+if player.rect.colliderect(enemy.rect):
+    new_image = pygame.image.load('new_image.png')
+    player.image = new_image
+    pygame.display.flip()
+    # 적 충돌 처리 코드
