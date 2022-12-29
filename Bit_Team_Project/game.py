@@ -334,9 +334,11 @@ class Enemy(pygame.sprite.Sprite):
         self.enemy_move_right = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha(), self.scale), pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/right_2.png").convert_alpha(), self.scale)]
         self.enemy_move_left = [pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_1.png").convert_alpha(), self.scale),pygame.transform.scale(pygame.image.load("Sprite/Enemy_move/left_2.png").convert_alpha(), self.scale)]
         self.Walkcount = 0
+        self.death_count = 0
 
         # 적 스텟
         self.health = 200
+        self.speed = 2
 
     def get_damage(self,amount):
         if self.health > 0:
@@ -356,23 +358,31 @@ class Enemy(pygame.sprite.Sprite):
 #적이미지 변환
     def update(self):
         if self.health <= 0:
-            self.kill()
+            enemies.remove(self)
             player.charge_exp += 100
-        self.input()
+            self.surf = pygame.transform.scale(pygame.image.load("Sprite/Enemy_hurt/enemy_dead.png").convert_alpha(), self.scale)
+            self.death_count += 1
+            self.health += 1
+            
+        if self.death_count >= 1:
+            self.death_count += 1
+            if self.death_count == 120:
+                self.kill()
 
-        if self.Walkcount + 1 >= 16:
-            self.Walkcount = 0
-        elif self.right:
-            self.surf = self.enemy_move_right[self.Walkcount//8]
-            self.Walkcount += 1
-        elif self.left:
-            self.surf = self.enemy_move_left[self.Walkcount//8]
-            self.Walkcount += 1
         else:
-            self.surf = self.enemy_move_left[0]
-            self.Walkcount = 0
+            self.input()
 
-
+            if self.Walkcount + 1 >= 16:
+                self.Walkcount = 0
+            elif self.right:
+                self.surf = self.enemy_move_right[self.Walkcount//8]
+                self.Walkcount += 1
+            elif self.left:
+                self.surf = self.enemy_move_left[self.Walkcount//8]
+                self.Walkcount += 1
+            else:
+                self.surf = self.enemy_move_left[0]
+                self.Walkcount = 0
 
 def colllided():
     # 여기에 충돌 시 hp 깎는 걸 만들자.
@@ -747,8 +757,8 @@ while running:
             dx, dy = dx / dist, dy / dist  # Normalize.
 
         # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
-        i.rect.x += round(dx * 2)
-        i.rect.y += round(dy * 2)
+        i.rect.x += round(dx * i.speed)
+        i.rect.y += round(dy * i.speed)
         if list_cd[0] > dist:
             list_cd[0] = dist
             if i.rect.x - camera_group.offset.x == 0 or i.rect.y - camera_group.offset.y == 0:
