@@ -355,7 +355,7 @@ class Enemy(pygame.sprite.Sprite):
 
         # 적 스텟
         self.health = 200
-        self.speed = 2
+        self.speed = 4
 
     def get_damage(self,amount):
         if self.health > 0:
@@ -427,7 +427,7 @@ class Enemy2(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy2, self).__init__() # 여기까지 무시해도 됨
 
-        self.scale = (94, 94)
+        self.scale = (96, 96)
         self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
         self.surf = pygame.transform.scale(self.surf, self.scale)
         self.rect = self.surf.get_rect()
@@ -517,7 +517,7 @@ class Enemy3(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy3, self).__init__() # 여기까지 무시해도 됨
 
-        self.scale = (130, 130)
+        self.scale = (128, 128)
         self.surf = pygame.image.load("Sprite/Enemy_move/right_1.png").convert_alpha() # 이미지 불러오기
         self.surf = pygame.transform.scale(self.surf, self.scale)
         self.rect = self.surf.get_rect()
@@ -536,7 +536,7 @@ class Enemy3(pygame.sprite.Sprite):
 
         # 적 스텟
         self.health = 1000
-        self.speed = 4
+        self.speed = 2
 
     def get_damage(self,amount):
         if self.health > 0:
@@ -716,9 +716,9 @@ camera_group.add(player)
 clock = pygame.time.Clock()
 
 # 랜덤 생성 간격 
-enemy_term = 30
-enemy2_term = 30
-enemy3_term = 30
+enemy_term = 120
+enemy2_term = 120
+enemy3_term = 120
 
 All_Skills = pygame.sprite.Group()
 Using_skills = pygame.sprite.Group()
@@ -990,13 +990,19 @@ while running:
             if pressed[pygame.K_a]:
                 intro = False
         pygame.display.update()
+    if whole_ticks > 0:
+        whole_ticks % enemy_term == 0
+    if whole_ticks > 3600:
+        whole_ticks % enemy2_term == 1
+    if whole_ticks > 7200:
+        whole_ticks % enemy3_term == 2
 
     #적 랜덤 생성
     if (whole_ticks % enemy_term) == 0:
         add_enemy(player)
-    if (whole_ticks % enemy2_term) == 0:
+    if (whole_ticks % enemy2_term) == 1:
         add_enemy2(player)
-    if (whole_ticks % enemy3_term) == 0:
+    if (whole_ticks % enemy3_term) == 2:    
         add_enemy3(player)
 
     # 플레이어 쿨다운
