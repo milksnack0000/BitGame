@@ -491,6 +491,10 @@ class Skill(pygame.sprite.Sprite):
         self.floor_damage = 1
         self.floor_time = 1
         self.floor_skill_effect = 'd'
+        self.floor_area = (160, 160)
+
+        # 닿으면 터지는 스킬
+        self.touch_skill = False
 
         # 스킬 설명
         self.all_txt = all_txt
@@ -514,6 +518,11 @@ class Skill(pygame.sprite.Sprite):
     def run_floor_deal(self):
         for i in pygame.sprite.spritecollide(self, enemies, False):
             i.get_damage(self.floor_damage)
+
+    def run_touch_deal(self):
+        self.damage_area.center = coordinate
+        self.rect = self.damage_area
+
 
 
     # 스킬 이펙트 발생
@@ -547,7 +556,7 @@ class Skill(pygame.sprite.Sprite):
     # 스킬이 날아가는 모션
     def throwing_skill(self, coordinate):
         self.rect.center = (screen_width // 2 + self.player_offset_x, screen_height // 2 + self.player_offset_y)
-        coord = (round(coordinate[0]), round(coordinate[1]))
+        coord = (round(coordinate[0] - (screen_width // 2 )), round(coordinate[1] - (screen_height // 2 )))
         target = pygame.math.Vector2(coord)
         dist = target.normalize()
         if target.x != 0:
@@ -635,6 +644,7 @@ ice_bomb.floor_skill = True
 ice_bomb.floor_damage = 100
 ice_bomb.floor_skill_effect = ice_bomb_floor
 ice_bomb.name = '눈 폭탄'
+ice_bomb.floor_area = (160, 160)
 All_Skills.add(ice_bomb)
 ice_bomb.chosen = True
 
@@ -642,7 +652,6 @@ health_up = Skill(health_up_icon, dummy_throw_object, health_up_txt)
 health_up.stat = True
 health_up.name = 'hp 증가'
 All_Skills.add(health_up)
-
 
 speed_up = Skill(speed_up_icon, dummy_throw_object, speed_up_txt)
 speed_up.stat = True
@@ -693,6 +702,8 @@ for i in range(2500):
 	random_y = random.randint(-9000,9000)
 	Tree((random_x,random_y),camera_group)
 
+
+list_cd1 = [0, 0]
 #실행
 running = True
 while running:
@@ -715,6 +726,8 @@ while running:
     #플레이어 위치 업데이트용
     px = round(player.rect.centerx)
     py = round(player.rect.centery)
+    list_cd = [1000, 0 , 0]
+
 
     for i in enemies:
         #플레이어와 적 사이의 direction vector (dx, dy) 찾기
@@ -722,17 +735,29 @@ while running:
         dist = math.hypot(dx, dy)
         if dist != 0:
             dx, dy = dx / dist, dy / dist  # Normalize.
-    
+
         # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
         i.rect.x += round(dx * 2)
         i.rect.y += round(dy * 2)
+        if list_cd[0] > dist:
+            list_cd[0] = dist
+            if i.rect.x == 0 or i.rect.y == 0:
+                list_cd[1] = i.rect.centerx + 1
+                list_cd[2] = i.rect.centery + 1
+            else:
+                list_cd[1] = i.rect.centerx
+                list_cd[2] = i.rect.centery
 
+    if whole_ticks == test_skill.selected_time + test_skill.cool_time:
+        list_cd1[0] = list_cd[1] - camera_group.offset.x
+        list_cd1[1] = list_cd[2] - camera_group.offset.y
+    
     colllided()
 
     #화면표시
     screen.fill(WHITE)
 
-    test_skill.run_skill((100, -100), whole_ticks)
+    test_skill.run_skill((list_cd1[0], list_cd1[1]), whole_ticks)
     ice_bomb.run_skill((100, 100), whole_ticks)
 
     #적과 플레이어 화면에 표시

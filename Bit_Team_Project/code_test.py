@@ -3,7 +3,6 @@ from pygame.locals import *
 import random # 적 랜덤 생성
 import math # 적 플레이어 추적
 from effect import *
-import time #살아남은 시간
 
 pygame.init() # 초기화
 
@@ -12,11 +11,12 @@ screen = pygame.display.set_mode((0,0), FULLSCREEN)
 screen_width = int(screen.get_width())
 screen_height = int(screen.get_height())
 WHITE = (255, 255, 255)
-
 main_menu = False
 menu_command = 0
 mmm = True
 whole_ticks = 0
+
+
 
 pygame.display.set_caption("BIT_GAME")
 fontsize = 16
@@ -534,39 +534,39 @@ class Skill(pygame.sprite.Sprite):
 # 스킬이름.run_skill(스킬 발동 지점, whole_ticks) 
 
 
-test_skill = Skill(test_skill_icon, skill_throwing_test, skill_txt)
-All_Skills.add(test_skill)
-test_skill.cool_time = 300 # 스킬 쿨타임 60=1초
-test_skill.effect_time = 30 # 스킬 이펙트 시간
-test_skill.skill_effect = test_skill_effect
-test_skill.skill_damage = 1000
-test_skill.chosen = True
-test_skill.bomb_skill = True
-test_skill.name = '테스트용 스킬'
+# test_skill = Skill(test_skill_icon, skill_throwing_test, skill_txt)
+# All_Skills.add(test_skill)
+# test_skill.cool_time = 300 # 스킬 쿨타임 60=1초
+# test_skill.effect_time = 30 # 스킬 이펙트 시간
+# test_skill.skill_effect = test_skill_effect
+# test_skill.skill_damage = 1000
+# test_skill.chosen = True
+# test_skill.bomb_skill = True
+# test_skill.name = '테스트용 스킬'
 
-ice_bomb = Skill(ice_bomb_icon, ice_bomb_throw, ice_bomb_txt)
-ice_bomb.cool_time = 60 # 스킬 쿨타임 60=1초
-ice_bomb.effect_time = 30 # 스킬 이펙트 시간
-ice_bomb.skill_effect = test_skill_effect
-ice_bomb.skill_damage = 10
-ice_bomb.floor_time = 180       
-ice_bomb.floor_skill = True
-ice_bomb.floor_damage = 20
-ice_bomb.floor_skill_effect = ice_bomb_floor
-ice_bomb.name = '눈 폭탄'
-All_Skills.add(ice_bomb)
-ice_bomb.chosen = False
+# ice_bomb = Skill(ice_bomb_icon, ice_bomb_throw, ice_bomb_txt)
+# ice_bomb.cool_time = 60 # 스킬 쿨타임 60=1초
+# ice_bomb.effect_time = 30 # 스킬 이펙트 시간
+# ice_bomb.skill_effect = test_skill_effect
+# ice_bomb.skill_damage = 10
+# ice_bomb.floor_time = 180       
+# ice_bomb.floor_skill = True
+# ice_bomb.floor_damage = 20
+# ice_bomb.floor_skill_effect = ice_bomb_floor
+# ice_bomb.name = '눈 폭탄'
+# All_Skills.add(ice_bomb)
+# ice_bomb.chosen = False
 
-health_up = Skill(health_up_icon, dummy_throw_object, health_up_txt)
-health_up.stat = True
-health_up.name = 'hp 증가'
-All_Skills.add(health_up)
+# health_up = Skill(health_up_icon, dummy_throw_object, health_up_txt)
+# health_up.stat = True
+# health_up.name = 'hp 증가'
+# All_Skills.add(health_up)
 
 
-speed_up = Skill(speed_up_icon, dummy_throw_object, speed_up_txt)
-speed_up.stat = True
-speed_up.name = '이동속도 증가'
-All_Skills.add(speed_up)
+# speed_up = Skill(speed_up_icon, dummy_throw_object, speed_up_txt)
+# speed_up.stat = True
+# speed_up.name = '이동속도 증가'
+# All_Skills.add(speed_up)
 
 #스프라이트 그룹
 enemies = pygame.sprite.Group()
@@ -606,6 +606,84 @@ def startscreen():
 
 intro = True #게임시작화면
 
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet. """
+
+    def __init__(self, pos, enemy, screen_rect):
+    
+        """Take the pos, direction and angle of the player."""
+        super().__init__()
+        self.image = pygame.image.load("bullet.png").convert_alpha() # 이미지 불러오기
+        # The `pos` parameter is the center of the bullet.rect.
+        self.rect = self.image.get_rect(center=pos)
+        self.position = pygame.math.Vector2(pos)  # The position of the bullet.
+        # This Vector points from the mouse pos to the enemy.
+        direction = enemy - pos
+        # The polar coordinates of the direction Vector.
+        radius, angle = direction.as_polar()
+        # Rotate the image by the negatiVe angle (because the y-axis is flipped).
+        self.image = pygame.transform.rotozoom(self.image, -angle, 1)
+        # The Velocity is the normalized direction Vector scaled to the desired length.
+        self.Velocity = direction.normalize() * 11
+        self.screen_rect = screen_rect
+
+    def update(self):
+        """MoVe the bullet."""
+        self.position += self.Velocity  # Update the position Vector.
+        self.rect.center = self.position  # And the rect.
+
+        # RemoVe the bullet when it leaVes the screen.
+        if not self.screen_rect.contains(self.rect):
+            self.kill()
+
+
+def intercept(position, bullet_speed, enemy, target_Velocity):
+    a = target_Velocity.x**2 + target_Velocity.y**2 - bullet_speed**2
+    b = 2 * (target_Velocity.x * (enemy.x - position.x) + target_Velocity.y * (enemy.y - position.y))
+    c = (enemy.x - position.x)**2 + (enemy.y - position.y)**2
+
+    discriminant = b*b - 4*a*c
+    if discriminant < 0:
+        print("Target can't be reached.")
+        return None
+    else:
+        t1 = (-b + math.sqrt(discriminant)) / (2*a)
+        t2 = (-b - math.sqrt(discriminant)) / (2*a)
+        t = max(t1, t2)
+        x = target_Velocity.x * t + enemy.x
+        y = target_Velocity.y * t + enemy.y
+        return pygame.math.Vector2(x, y)
+
+
+def main():
+    pygame.init()
+    screen_rect = screen.get_rect()
+    bullet_group = pygame.sprite.Group()
+    enemy = pygame.math.Vector2(50, 300)
+    target_Velocity = pygame.math.Vector2(4, 3)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                target_Vector = intercept(pygame.math.Vector2(event.pos), 11, enemy, target_Velocity)
+                # Shoot a bullet. Pass the start position (in this
+                # case the mouse position) and the enemy position Vector.
+                if target_Vector is not None:  # Shoots only if the enemy can be reached.
+                    bullet = Bullet(event.pos, target_Vector, screen_rect)
+                    all_sprites.add(bullet)
+                    bullet_group.add(bullet)
+
+
+        all_sprites.update()
+        all_sprites.draw(screen)
+
+
+if __name__ == '__main__':
+    main()
+
 #크리스마스 트리 생성/배치
 for i in range(2500):
 	random_x = random.randint(-9000,9000)
@@ -616,126 +694,188 @@ for i in range(2500):
 running = True
 while running:
     clock.tick(60)
-    pressed = pygame.key.get_pressed()
-    
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
             running = False
-
-    if not intro:
-
-        #적 랜덤 생성
-        if (whole_ticks % enemy_term) == 0:
-            add_enemy(player)
-
-        # 플레이어 쿨다운
-        if whole_ticks >= player.present_ticks +  hit_cooldown:
-            player.cooldown = False
-
-            
-        #플레이어 위치 업데이트용
-        px = round(player.rect.centerx)
-        py = round(player.rect.centery)
-
-        for i in enemies:
-            #플레이어와 적 사이의 direction vector (dx, dy) 찾기
-            dx, dy = px - i.rect.centerx, py - i.rect.centery
-            dist = math.hypot(dx, dy)
-            if dist != 0:
-                dx, dy = dx / dist, dy / dist  # Normalize.
         
-            # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
-            i.rect.x += round(dx * 2)
-            i.rect.y += round(dy * 2)
 
-        colllided()
+    #적 랜덤 생성
+    if (whole_ticks % enemy_term) == 0:
+        add_enemy(player)
 
-        #화면표시
-        screen.fill(WHITE)
+    # 플레이어 쿨다운
+    if whole_ticks >= player.present_ticks +  hit_cooldown:
+        player.cooldown = False
 
-        test_skill.run_skill((100, -100), whole_ticks)
-        ice_bomb.run_skill((100, 100), whole_ticks)
+        
+    #플레이어 위치 업데이트용
+    px = round(player.rect.centerx)
+    py = round(player.rect.centery)
 
-        #적과 플레이어 화면에 표시
-        camera_group.update()
-        camera_group.custom_draw(player)
+    for i in enemies:
+        #플레이어와 적 사이의 direction vector (dx, dy) 찾기
+        dx, dy = px - i.rect.centerx, py - i.rect.centery
+        dist = math.hypot(dx, dy)
+        if dist != 0:
+            dx, dy = dx / dist, dy / dist  # Normalize.
+    
+        # 적이 normalized vector을 따라 플레이어를 향해 이동(속도 조절 가능)
+        i.rect.x += round(dx * 2)
+        i.rect.y += round(dy * 2)
 
-        #눈 효과 생성
-        for ice in range(len(snow)):
-            pygame.draw.circle(screen, 'sky blue', snow[ice],3)
-            snow[ice][1]+=1  
-            if snow[ice][1]>1700: 
-                snow[ice][1] = random.randrange(-550,-10)
-                snow[ice][0] = random.randrange(0,1700)
+    colllided()
 
-        player.advanced_health()
-        player.draw_exp()
+    #화면표시
+    screen.fill(WHITE)
 
-        if player.level_get == True:
-            player.level_up()
-            player.button1.draw()
-            player.button2.draw()
-            player.button3.draw()
-            while mmm:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        mmm = False
-                    player.button1.changeColor()
-                    player.button2.changeColor()
-                    player.button3.changeColor()
+    # test_skill.run_skill((100, -100), whole_ticks)
+    # ice_bomb.run_skill((100, 100), whole_ticks)
 
-                    if player.button1.check_clicked():
-                        player.selected_skill.sprites()[0].skill_level += 1
-                        player.selected_skill.sprites()[0].selected_time = whole_ticks
-                        player.selected_skill.sprites()[0].txt_update()
-                        if player.selected_skill.sprites()[0].skill_level == 1:
-                            player.selected_skill.sprites()[0].chosen = True
-                        mmm = False
-                    if player.button2.check_clicked():
-                        player.selected_skill.sprites()[1].skill_level += 1
-                        player.selected_skill.sprites()[1].selected_time = whole_ticks
-                        player.selected_skill.sprites()[1].txt_update()
-                        if player.selected_skill.sprites()[1].skill_level == 1:
-                            player.selected_skill.sprites()[1].chosen = True
-                        mmm = False
-                    if player.button3.check_clicked():
-                        player.selected_skill.sprites()[2].skill_level += 1
-                        player.selected_skill.sprites()[2].selected_time = whole_ticks
-                        player.selected_skill.sprites()[2].txt_update()
-                        if player.selected_skill.sprites()[2].skill_level == 1:
-                            player.selected_skill.sprites()[2].chosen = True
-                        mmm = False
-                pygame.display.update()
-            player.level_get = False
-        whole_ticks += 1
+    #적과 플레이어 화면에 표시
+    camera_group.update()
+    camera_group.custom_draw(player)
 
-        #살아남은 시간
-        font = pygame.font.SysFont(None, 32)
-        a = str(int(time.time() - startTime))
-        counting_text = font.render(a, 1, (0,0,0))
-        center0 = int(screen.get_rect().midtop[0]), int(screen.get_rect().midtop[1]) + 200
-        counting_rect = counting_text.get_rect(center = center0)
-        screen.blit(counting_text, counting_rect)
-        print(a)
+    #눈 효과 생성
+    for ice in range(len(snow)):
+        pygame.draw.circle(screen, 'sky blue', snow[ice],3)
+        snow[ice][1]+=1  
+        if snow[ice][1]>1700: 
+            snow[ice][1] = random.randrange(-550,-10)
+            snow[ice][0] = random.randrange(0,1700)
 
-        gamepoint = int(a)
+    player.advanced_health()
+    player.draw_exp()
 
-        #게임오버 화면에 표시(스페이스바 누르면)
-        if pressed[pygame.K_SPACE] :
-            running = False
-            gamepoint = font.render(a, 1, (0,0,0))
-            showGameOverScreen()
+    if player.level_get == True:
+        player.level_up()
+        player.button1.draw()
+        player.button2.draw()
+        player.button3.draw()
+        while mmm:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    mmm = False
+                player.button1.changeColor()
+                player.button2.changeColor()
+                player.button3.changeColor()
 
-        pygame.display.update()
-
-    #게임시작 화면 표시(a누르면 넘어감)
-    if intro:
-        startscreen()
-        if pressed[pygame.K_a]:
-            intro = False
-            startTime = time.time() # 시작 시간(살아남은 시간)
+                if player.button1.check_clicked():
+                    player.selected_skill.sprites()[0].skill_level += 1
+                    player.selected_skill.sprites()[0].selected_time = whole_ticks
+                    player.selected_skill.sprites()[0].txt_update()
+                    if player.selected_skill.sprites()[0].skill_level == 1:
+                        player.selected_skill.sprites()[0].chosen = True
+                    mmm = False
+                if player.button2.check_clicked():
+                    player.selected_skill.sprites()[1].skill_level += 1
+                    player.selected_skill.sprites()[1].selected_time = whole_ticks
+                    player.selected_skill.sprites()[1].txt_update()
+                    if player.selected_skill.sprites()[1].skill_level == 1:
+                        player.selected_skill.sprites()[1].chosen = True
+                    mmm = False
+                if player.button3.check_clicked():
+                    player.selected_skill.sprites()[2].skill_level += 1
+                    player.selected_skill.sprites()[2].selected_time = whole_ticks
+                    player.selected_skill.sprites()[2].txt_update()
+                    if player.selected_skill.sprites()[2].skill_level == 1:
+                        player.selected_skill.sprites()[2].chosen = True
+                    mmm = False
+            pygame.display.update()
+        player.level_get = False
+    whole_ticks += 1
     pygame.display.update()
 
-pygame.time.delay(3000) #게임 종료 전 딜레이
 pygame.quit()
+
+LIME = pygame.Color(192, 255, 0)
+
+
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet. """
+
+    def __init__(self, pos, enemy, screen_rect):
+        """Take the pos, direction and angle of the player."""
+        super().__init__()
+        self.image = pygame.Surface((16, 10), pygame.SRCALPHA)
+        pygame.draw.polygon(self.image, LIME, ((0, 0), (16, 5), (0, 10)))
+        # The `pos` parameter is the center of the bullet.rect.
+        self.rect = self.image.get_rect(center=pos)
+        self.position = pygame.math.Vector2(pos)  # The position of the bullet.
+
+        # This Vector points from the mouse pos to the enemy.
+        direction = enemy - pos
+        # The polar coordinates of the direction Vector.
+        radius, angle = direction.as_polar()
+        # Rotate the image by the negatiVe angle (because the y-axis is flipped).
+        self.image = pygame.transform.rotozoom(self.image, -angle, 1)
+        # The Velocity is the normalized direction Vector scaled to the desired length.
+        self.Velocity = direction.normalize() * 11
+        self.screen_rect = screen_rect
+
+    def update(self):
+        """MoVe the bullet."""
+        self.position += self.Velocity  # Update the position Vector.
+        self.rect.center = self.position  # And the rect.
+
+        # RemoVe the bullet when it leaVes the screen.
+        if not self.screen_rect.contains(self.rect):
+            self.kill()
+
+
+def intercept(position, bullet_speed, enemy, target_Velocity):
+    a = target_Velocity.x**2 + target_Velocity.y**2 - bullet_speed**2
+    b = 2 * (target_Velocity.x * (enemy.x - position.x) + target_Velocity.y * (enemy.y - position.y))
+    c = (enemy.x - position.x)**2 + (enemy.y - position.y)**2
+
+    discriminant = b*b - 4*a*c
+    if discriminant < 0:
+        print("Target can't be reached.")
+        return None
+    else:
+        t1 = (-b + math.sqrt(discriminant)) / (2*a)
+        t2 = (-b - math.sqrt(discriminant)) / (2*a)
+        t = max(t1, t2)
+        x = target_Velocity.x * t + enemy.x
+        y = target_Velocity.y * t + enemy.y
+        return pygame.math.Vector2(x, y)
+
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    screen_rect = screen.get_rect()
+    clock = pygame.time.Clock()
+
+    all_sprites = pygame.sprite.Group()
+    bullet_group = pygame.sprite.Group()
+
+    enemy = pygame.math.Vector2(50, 300)
+    target_Velocity = pygame.math.Vector2(4, 3)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                target_Vector = intercept(pygame.math.Vector2(event.pos), 11, enemy, target_Velocity)
+                # Shoot a bullet. Pass the start position (in this
+                # case the mouse position) and the enemy position Vector.
+                if target_Vector is not None:  # Shoots only if the enemy can be reached.
+                    bullet = Bullet(event.pos, target_Vector, screen_rect)
+                    all_sprites.add(bullet)
+                    bullet_group.add(bullet)
+
+        enemy += target_Velocity
+        if enemy.x >= screen_rect.right or enemy.x < 0:
+            target_Velocity.x *= -1
+        if enemy.y >= screen_rect.bottom or enemy.y < 0:
+            target_Velocity.y *= -1
+
+        all_sprites.update()
+        all_sprites.draw(screen)
+
+
+if __name__ == '__main__':
+    main()
