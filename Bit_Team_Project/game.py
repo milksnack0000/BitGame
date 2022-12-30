@@ -1013,6 +1013,7 @@ ice_bomb.name = '눈 폭탄'
 ice_bomb.floor_area = (160, 160)
 All_Skills.add(ice_bomb)
 
+
 basic_skill = Skill(basic_skill_icon, basic_skill_throw, basic_skill_txt)
 basic_skill.name = '요정을 위한 첫 선물'
 basic_skill.cool_time = 240
