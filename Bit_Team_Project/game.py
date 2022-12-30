@@ -5,6 +5,7 @@ import math # 적 플레이어 추적
 from effect import *
 import time
 
+
 pygame.init() # 초기화
 
 # 화면 설정
